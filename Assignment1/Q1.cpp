@@ -12,37 +12,6 @@ struct node {
     struct node* parent;
 };
 
-node* insert(node* root, int key) {
-    node *newNode = new node;
-    newNode->data = key;
-    newNode->left = NULL;
-    newNode->right = NULL;
-    newNode->parent = NULL;
-
-    if(root == NULL) {
-        root = newNode;
-        return root;
-    }
-    node* temp = root;
-    node* parent = NULL;
-
-    while(temp != NULL) {
-        parent = temp;
-        if(key < temp -> data)
-            temp = temp->left;
-        else
-            temp = temp->right;
-    }
-
-    newNode->parent = parent;
-    if(key < parent->data)
-        parent->left = newNode;
-    else
-        parent->right = newNode;
-
-    return root;
-}
-
 void printInOrder(node* root) {
     if(root == NULL)
         return;
@@ -90,12 +59,47 @@ void displayTraversals(node* root) {
     cout<<"END\n";
 }
 
+node* insert(node* root, int key) {
+    node *newNode = new node;
+    newNode->data = key;
+    newNode->left = NULL;
+    newNode->right = NULL;
+    newNode->parent = NULL;
+
+    if(root == NULL) {
+        root = newNode;
+        return root;
+    }
+    node* temp = root;
+    node* parent = NULL;
+
+    while(temp != NULL) {
+        parent = temp;
+        if(key < temp -> data)
+            temp = temp->left;
+        else if (key > temp -> data)
+            temp = temp->right;
+        else {
+            flag = true;
+            return root;
+        }
+    }
+
+    newNode->parent = parent;
+    if(key < parent->data)
+        parent->left = newNode;
+    else
+        parent->right = newNode;
+
+    return root;
+}
+
 node* search(node* root, int key) {
     node* temp = root;
     while(temp!=NULL) {
         if(temp->data == key) {
             cout<<"Key found\n";
-            return root;
+            return temp;
         }
         else if(key < temp->data) 
             temp = temp->left;
@@ -150,7 +154,7 @@ node* deleteNode(node* root, int key) {
 
 
 int main() {
-    node *root = NULL;
+    node *root = NULL, *keyNode;
     int N, S, I, D, key;
     cin>>N;
     for(int i = 0; i < N; ++i) {
@@ -164,15 +168,17 @@ int main() {
     for(int i = 0; i < S; ++i) {
         cin>>key;
         cout<<"SEARCH "<<key<<": ";
-        root = search(root, key);
+        keyNode = search(root, key);
     }
 
     cin>>I;
     for(int i = 0; i < I; ++i) {
         cin>>key;
         cout<<"INSERT "<<key<<endl;
+        flag = false;
         root = insert(root, key);
-        displayTraversals(root);
+        if(flag) cout<<"Duplicate Key"<<endl;
+        else displayTraversals(root);
     }
 
     cin>>D;
