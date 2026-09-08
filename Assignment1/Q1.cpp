@@ -35,17 +35,17 @@ void printLevelOrder(node* root) {
         return;
     queue<node*> q;
     q.push(root);
-    node* curr;
+    node* temp;
     while(!q.empty()) {
         int levelSize = q.size();
         for(int i = 0 ; i < levelSize ; ++i) {
-            curr = q.front();
+            temp = q.front();
             q.pop();
-            cout<<curr->data<<" ";
-            if(curr->left != NULL)
-                q.push(curr->left);
-            if(curr->right != NULL)
-                q.push(curr->right);
+            cout<<temp->data<<" ";
+            if(temp->left != NULL)
+                q.push(temp->left);
+            if(temp->right != NULL)
+                q.push(temp->right);
         }
         cout<<endl;
     }
@@ -107,47 +107,42 @@ node* search(node* root, int key) {
             temp = temp->right;
     }
     cout<<"Key not found\n";
-    return root;
+    return NULL;
 }
 
 node* deleteNode(node* root, int key) {
-    if (root == NULL)
-        return NULL;
-
-    if (key < root->data) 
-        root->left = deleteNode(root->left, key);
-
-    else if (key > root->data)
-        root->right = deleteNode(root->right, key);
-    
-    else {
-        flag = true;
-        if (root->left == NULL && root->right == NULL) {
-            delete root;
-            return NULL;
-        }
-
-        else if (root->left == NULL) {
-            node* temp = root->right;
-            delete root;
-            return temp;
-        }
-
-        else if (root->right == NULL) {
-            node* temp = root->left;
-            delete root;
-            return temp;
-        }
-
-        else {
-            node* successor = root->right;
-            while (successor->left != NULL)
-                successor = successor->left;
-
-            root->data = successor->data;
-            root->right = deleteNode(root->right, successor->data);
-        }
+    node* temp = root;
+    while (temp != NULL && temp->data != key) {
+        if (key < temp->data)
+            temp = temp->left;
+        else
+            temp = temp->right;
     }
+    if (temp == NULL)
+        return root;
+    flag = true;
+    if (temp->left != NULL && temp->right != NULL) {
+        node* successor = temp->right;
+        while (successor->left != NULL)
+            successor = successor->left;
+
+        temp->data = successor->data;
+        temp = successor;
+    }
+
+    node* child = (temp->left != NULL) ? temp->left : temp->right;
+
+    if (temp->parent == NULL) 
+        root = child;
+    else if (temp == temp->parent->left) 
+        temp->parent->left = child;
+    else 
+        temp->parent->right = child;
+    
+    if (child != NULL)
+        child->parent = temp->parent;
+    delete temp;
+
     return root;
 }
 
