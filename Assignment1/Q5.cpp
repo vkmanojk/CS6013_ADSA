@@ -49,8 +49,7 @@ int main() {
             maximum = keys[i];
     }
 
-    int q = N / 20;
-
+    int q = (N + 19) / 20;
     vector<int> randomSet(q);
 
     for (int i = 0; i < q; ++i)
