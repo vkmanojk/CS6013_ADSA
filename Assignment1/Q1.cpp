@@ -186,6 +186,16 @@ node* deleteNode(node* root, int key) {
     return root;
 }
 
+// Function to free dynamically allocated tree memory.
+void freeTree(node* root) {
+    if (root == NULL)
+        return;
+    
+    freeTree(root->left);
+    freeTree(root->right);
+    delete root;
+}
+
 
 int main() {
     node *root = NULL, *keyNode;
@@ -214,7 +224,7 @@ int main() {
         flag = false;
         root = insert(root, key);
         if (flag)
-            cout << "Duplicate Key\n";
+            cout << "Duplicate key\n";
         else
             displayTraversals(root);
     }
@@ -231,5 +241,6 @@ int main() {
             displayTraversals(root);
     }
 
+    freeTree(root);
     return 0;
 }

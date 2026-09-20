@@ -1,6 +1,7 @@
 #include <iostream>
 #include <queue>
 #include <stack>
+#include <limits>
 
 using namespace std;
 
@@ -112,14 +113,13 @@ node* search(node* root, int key) {
     return NULL;
 }
 
-// Function to insert a key into the 2-4 tree.
+// Function to insert a key using top-down splitting.
 node* insert(node* root, int key) {
     node* temp = root;
 
     // Check for a duplicate key.
     while (temp != NULL) {
         int i = 0;
-
         while (i < temp->keyCount && key > temp->keys[i])
             ++i;
 
@@ -137,35 +137,32 @@ node* insert(node* root, int key) {
     // Create the first node.
     if (root == NULL) {
         root = new node;
-
         root->keyCount = 1;
         root->keys[0] = key;
         root->isLeaf = true;
         root->parent = NULL;
-
         for (int i = 0; i < 4; ++i)
             root->children[i] = NULL;
-
         return root;
     }
 
     // Split the root if it is full.
     if (root->keyCount == 3) {
-        node* temp = root;
+        node* tempRoot = root;
         node* right = new node;
         node* newRoot = new node;
 
         right->keyCount = 1;
-        right->keys[0] = temp->keys[2];
-        right->isLeaf = temp->isLeaf;
+        right->keys[0] = tempRoot->keys[2];
+        right->isLeaf = tempRoot->isLeaf;
         right->parent = newRoot;
 
         for (int i = 0; i < 4; ++i)
             right->children[i] = NULL;
 
-        if (!temp->isLeaf) {
-            right->children[0] = temp->children[2];
-            right->children[1] = temp->children[3];
+        if (!tempRoot->isLeaf) {
+            right->children[0] = tempRoot->children[2];
+            right->children[1] = tempRoot->children[3];
 
             if (right->children[0] != NULL)
                 right->children[0]->parent = right;
@@ -173,21 +170,21 @@ node* insert(node* root, int key) {
             if (right->children[1] != NULL)
                 right->children[1]->parent = right;
 
-            temp->children[2] = NULL;
-            temp->children[3] = NULL;
+            tempRoot->children[2] = NULL;
+            tempRoot->children[3] = NULL;
         }
 
         newRoot->keyCount = 1;
-        newRoot->keys[0] = temp->keys[1];
+        newRoot->keys[0] = tempRoot->keys[1]; // Promote index 1
         newRoot->isLeaf = false;
-        newRoot->children[0] = temp;
+        newRoot->children[0] = tempRoot;
         newRoot->children[1] = right;
         newRoot->children[2] = NULL;
         newRoot->children[3] = NULL;
         newRoot->parent = NULL;
 
-        temp->keyCount = 1;
-        temp->parent = newRoot;
+        tempRoot->keyCount = 1;
+        tempRoot->parent = newRoot;
 
         root = newRoot;
     }
@@ -227,7 +224,7 @@ node* insert(node* root, int key) {
                 child->children[3] = NULL;
             }
 
-            int middle = child->keys[1];
+            int middle = child->keys[1]; // Promote index 1
 
             child->keyCount = 1;
 
@@ -351,28 +348,27 @@ node* deleteKey(node* root, int key) {
             }
 
             // Merge the key with its two adjacent children.
-            node* left = temp->children[i];
-            node* right = temp->children[i + 1];
+            node* leftChild = temp->children[i];
+            node* rightChild = temp->children[i + 1];
 
-            int count = left->keyCount;
+            int count = leftChild->keyCount;
 
-            left->keys[count] = temp->keys[i];
+            leftChild->keys[count] = temp->keys[i];
             count++;
 
-            for (int j = 0; j < right->keyCount; ++j)
-                left->keys[count + j] = right->keys[j];
+            for (int j = 0; j < rightChild->keyCount; ++j)
+                leftChild->keys[count + j] = rightChild->keys[j];
 
-            if (!left->isLeaf) {
-                for (int j = 0; j <= right->keyCount; ++j) {
-                    left->children[left->keyCount + 1 + j] =
-                        right->children[j];
+            if (!leftChild->isLeaf) {
+                for (int j = 0; j <= rightChild->keyCount; ++j) {
+                    leftChild->children[count + j] = rightChild->children[j];
 
-                    if (left->children[left->keyCount + 1 + j] != NULL)
-                        left->children[left->keyCount + 1 + j]->parent = left;
+                    if (leftChild->children[count + j] != NULL)
+                        leftChild->children[count + j]->parent = leftChild;
                 }
             }
 
-            left->keyCount += right->keyCount + 1;
+            leftChild->keyCount += rightChild->keyCount + 1;
 
             for (int j = i; j < temp->keyCount - 1; ++j)
                 temp->keys[j] = temp->keys[j + 1];
@@ -381,20 +377,19 @@ node* deleteKey(node* root, int key) {
                 temp->children[j] = temp->children[j + 1];
 
             temp->keyCount--;
+            temp->children[temp->keyCount + 1] = NULL; // Clear unused pointer
 
-            // Remove the unused child pointer.
-            temp->children[temp->keyCount + 1] = NULL;
-
-            right->parent = NULL;
-            delete right;
+            rightChild->parent = NULL;
+            delete rightChild;
 
             if (temp == root && temp->keyCount == 0) {
-                root = left;
-                left->parent = NULL;
+                root = leftChild;
+                leftChild->parent = NULL;
                 delete temp;
+                temp = root;
+            } else {
+                temp = leftChild;
             }
-
-            temp = left;
             continue;
         }
 
@@ -404,12 +399,12 @@ node* deleteKey(node* root, int key) {
         // Make sure the child has at least two keys before descending.
         if (child->keyCount == 1) {
 
-            // Borrow from the left sibling.
+            // i. borrow from the left sibling.
             if (i > 0 && temp->children[i - 1]->keyCount >= 2) {
-                node* left = temp->children[i - 1];
+                node* leftSib = temp->children[i - 1];
 
                 int oldChildKeyCount = child->keyCount;
-                int oldLeftKeyCount = left->keyCount;
+                int oldLeftKeyCount = leftSib->keyCount;
 
                 for (int j = oldChildKeyCount; j > 0; --j)
                     child->keys[j] = child->keys[j - 1];
@@ -420,164 +415,132 @@ node* deleteKey(node* root, int key) {
                     for (int j = oldChildKeyCount + 1; j > 0; --j)
                         child->children[j] = child->children[j - 1];
 
-                    child->children[0] =
-                        left->children[oldLeftKeyCount];
+                    child->children[0] = leftSib->children[oldLeftKeyCount];
 
                     if (child->children[0] != NULL)
                         child->children[0]->parent = child;
 
-                    // The old last child position of left is now unused.
-                    left->children[oldLeftKeyCount] = NULL;
+                    leftSib->children[oldLeftKeyCount] = NULL;
                 }
 
-                temp->keys[i - 1] =
-                    left->keys[oldLeftKeyCount - 1];
+                temp->keys[i - 1] = leftSib->keys[oldLeftKeyCount - 1];
 
-                left->keyCount--;
+                leftSib->keyCount--;
                 child->keyCount++;
             }
+            // ii. borrow from the right sibling.
+            else if (i < temp->keyCount && temp->children[i + 1]->keyCount >= 2) {
 
-            // Otherwise borrow from the right sibling.
-            else if (i < temp->keyCount &&
-                     temp->children[i + 1]->keyCount >= 2) {
-
-                node* right = temp->children[i + 1];
+                node* rightSib = temp->children[i + 1];
 
                 int oldChildKeyCount = child->keyCount;
-                int oldRightKeyCount = right->keyCount;
+                int oldRightKeyCount = rightSib->keyCount;
 
                 child->keys[oldChildKeyCount] = temp->keys[i];
 
                 if (!child->isLeaf) {
-                    child->children[oldChildKeyCount + 1] =
-                        right->children[0];
+                    child->children[oldChildKeyCount + 1] = rightSib->children[0];
 
                     if (child->children[oldChildKeyCount + 1] != NULL)
                         child->children[oldChildKeyCount + 1]->parent = child;
                 }
 
-                temp->keys[i] = right->keys[0];
+                temp->keys[i] = rightSib->keys[0];
 
                 for (int j = 0; j < oldRightKeyCount - 1; ++j)
-                    right->keys[j] = right->keys[j + 1];
+                    rightSib->keys[j] = rightSib->keys[j + 1];
 
-                if (!right->isLeaf) {
+                if (!rightSib->isLeaf) {
                     for (int j = 0; j < oldRightKeyCount; ++j)
-                        right->children[j] = right->children[j + 1];
+                        rightSib->children[j] = rightSib->children[j + 1];
 
-                    // Last child position is now unused.
-                    right->children[oldRightKeyCount] = NULL;
+                    rightSib->children[oldRightKeyCount] = NULL;
                 }
 
-                right->keyCount--;
+                rightSib->keyCount--;
                 child->keyCount++;
             }
-
-            // Otherwise merge with the left sibling.
-            else if (i > 0) {
-                node* right = temp->children[i];
-                node* sibling = temp->children[i - 1];
-
-                int oldParentKeyCount = temp->keyCount;
-                int oldSiblingKeyCount = sibling->keyCount;
-
-                int count = oldSiblingKeyCount;
-
-                sibling->keys[count] = temp->keys[i - 1];
+            // iii. merge with the right sibling if one exists.
+            else if (i < temp->keyCount) {
+                node* rightSib = temp->children[i + 1];
+                
+                int count = child->keyCount;
+                child->keys[count] = temp->keys[i];
                 count++;
 
-                for (int j = 0; j < right->keyCount; ++j)
-                    sibling->keys[count + j] = right->keys[j];
+                for (int j = 0; j < rightSib->keyCount; ++j)
+                    child->keys[count + j] = rightSib->keys[j];
 
-                if (!sibling->isLeaf) {
-                    for (int j = 0; j <= right->keyCount; ++j) {
-                        sibling->children[oldSiblingKeyCount + 1 + j] =
-                            right->children[j];
-
-                        if (sibling->children[oldSiblingKeyCount + 1 + j]
-                            != NULL)
-                            sibling->children[oldSiblingKeyCount + 1 + j]
-                                ->parent = sibling;
+                if (!child->isLeaf) {
+                    for (int j = 0; j <= rightSib->keyCount; ++j) {
+                        child->children[count + j] = rightSib->children[j];
+                        if (child->children[count + j] != NULL)
+                            child->children[count + j]->parent = child;
                     }
                 }
 
-                sibling->keyCount += right->keyCount + 1;
+                child->keyCount += rightSib->keyCount + 1;
 
-                for (int j = i - 1; j < oldParentKeyCount - 1; ++j)
+                for (int j = i; j < temp->keyCount - 1; ++j)
                     temp->keys[j] = temp->keys[j + 1];
 
-                for (int j = i; j < oldParentKeyCount; ++j)
+                for (int j = i + 1; j < temp->keyCount; ++j)
                     temp->children[j] = temp->children[j + 1];
 
                 temp->keyCount--;
+                temp->children[temp->keyCount + 1] = NULL;
 
-                // Last child position is now unused.
-                temp->children[oldParentKeyCount] = NULL;
-
-                right->parent = NULL;
-                delete right;
+                rightSib->parent = NULL;
+                delete rightSib;
 
                 if (temp == root && temp->keyCount == 0) {
-                    root = sibling;
-                    sibling->parent = NULL;
+                    root = child;
+                    child->parent = NULL;
                     delete temp;
                     temp = root;
                 }
-
-                child = sibling;
             }
-
-            // Otherwise merge with the right sibling.
-            else {
-                node* left = temp->children[i];
-                node* right = temp->children[i + 1];
-
-                int oldParentKeyCount = temp->keyCount;
-                int oldLeftKeyCount = left->keyCount;
-
-                int count = oldLeftKeyCount;
-
-                left->keys[count] = temp->keys[i];
+            // iv. merge with the left sibling.
+            else if (i > 0) {
+                node* leftSib = temp->children[i - 1];
+                
+                int count = leftSib->keyCount;
+                leftSib->keys[count] = temp->keys[i - 1];
                 count++;
 
-                for (int j = 0; j < right->keyCount; ++j)
-                    left->keys[count + j] = right->keys[j];
+                for (int j = 0; j < child->keyCount; ++j)
+                    leftSib->keys[count + j] = child->keys[j];
 
-                if (!left->isLeaf) {
-                    for (int j = 0; j <= right->keyCount; ++j) {
-                        left->children[oldLeftKeyCount + 1 + j] =
-                            right->children[j];
-
-                        if (left->children[oldLeftKeyCount + 1 + j] != NULL)
-                            left->children[oldLeftKeyCount + 1 + j]
-                                ->parent = left;
+                if (!leftSib->isLeaf) {
+                    for (int j = 0; j <= child->keyCount; ++j) {
+                        leftSib->children[count + j] = child->children[j];
+                        if (leftSib->children[count + j] != NULL)
+                            leftSib->children[count + j]->parent = leftSib;
                     }
                 }
 
-                left->keyCount += right->keyCount + 1;
+                leftSib->keyCount += child->keyCount + 1;
 
-                for (int j = i; j < oldParentKeyCount - 1; ++j)
+                for (int j = i - 1; j < temp->keyCount - 1; ++j)
                     temp->keys[j] = temp->keys[j + 1];
 
-                for (int j = i + 1; j < oldParentKeyCount; ++j)
+                for (int j = i; j < temp->keyCount; ++j)
                     temp->children[j] = temp->children[j + 1];
 
                 temp->keyCount--;
+                temp->children[temp->keyCount + 1] = NULL;
 
-                // Last child position is now unused.
-                temp->children[oldParentKeyCount] = NULL;
+                child->parent = NULL;
+                delete child;
 
-                right->parent = NULL;
-                delete right;
+                child = leftSib;
 
                 if (temp == root && temp->keyCount == 0) {
-                    root = left;
-                    left->parent = NULL;
+                    root = leftSib;
+                    leftSib->parent = NULL;
                     delete temp;
                     temp = root;
                 }
-
-                child = left;
             }
         }
 
@@ -602,8 +565,8 @@ bool validate(node* root) {
 
     q.push(root);
     depths.push(0);
-    lower.push(-2147483649LL);
-    upper.push(2147483648LL);
+    lower.push(std::numeric_limits<long long>::min());
+    upper.push(std::numeric_limits<long long>::max());
 
     int leafDepth = -1;
 
@@ -620,11 +583,9 @@ bool validate(node* root) {
         long long high = upper.front();
         upper.pop();
 
-        // Every node must contain one to three keys.
         if (temp->keyCount < 1 || temp->keyCount > 3)
             return false;
 
-        // Keys inside a node must be strictly increasing.
         for (int i = 0; i < temp->keyCount; ++i) {
 
             if (temp->keys[i] <= low || temp->keys[i] >= high)
@@ -635,25 +596,18 @@ bool validate(node* root) {
         }
 
         if (temp->isLeaf) {
-
-            // A leaf cannot have any children.
             for (int i = 0; i < 4; ++i) {
                 if (temp->children[i] != NULL)
                     return false;
             }
 
-            // All leaves must be at the same depth.
             if (leafDepth == -1)
                 leafDepth = depth;
             else if (leafDepth != depth)
                 return false;
         }
-
         else {
-
-            // An internal node with k keys has exactly k+1 children.
             for (int i = 0; i <= temp->keyCount; ++i) {
-
                 if (temp->children[i] == NULL)
                     return false;
 
@@ -675,7 +629,6 @@ bool validate(node* root) {
                 upper.push(childHigh);
             }
 
-            // Unused child positions must be NULL.
             for (int i = temp->keyCount + 1; i < 4; ++i) {
                 if (temp->children[i] != NULL)
                     return false;
@@ -684,6 +637,19 @@ bool validate(node* root) {
     }
 
     return true;
+}
+
+// Function to free dynamically allocated tree memory.
+void freeTree(node* root) {
+    if (root == NULL)
+        return;
+    
+    for(int i = 0; i < 4; ++i) {
+        if(root->children[i] != NULL) {
+            freeTree(root->children[i]);
+        }
+    }
+    delete root;
 }
 
 
@@ -730,7 +696,7 @@ int main() {
             root->parent = NULL;
 
         if (flag) {
-            cout << "Duplicate Key\n";
+            cout << "Duplicate key\n";
         }
         else {
             displayTraversals(root);
@@ -772,5 +738,6 @@ int main() {
         }
     }
 
+    freeTree(root);
     return 0;
 }

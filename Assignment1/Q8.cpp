@@ -1,6 +1,7 @@
 #include <iostream>
 using namespace std;
 
+// Structure for an AVL tree node.
 struct AVLNode {
     int key;
     int height;
@@ -9,6 +10,7 @@ struct AVLNode {
     struct AVLNode* parent;
 };
 
+// Structure for a Red-Black tree node.
 struct RBNode {
     int key;
     bool color;
@@ -17,6 +19,7 @@ struct RBNode {
     struct RBNode* parent;
 };
 
+// Function to get the height of an AVL node.
 int getHeight(AVLNode* root) {
     if (root == NULL)
         return 0;
@@ -24,6 +27,7 @@ int getHeight(AVLNode* root) {
     return root->height;
 }
 
+// Function to update the height of an AVL node.
 void updateHeight(AVLNode* root) {
     int leftHeight = getHeight(root->left);
     int rightHeight = getHeight(root->right);
@@ -34,6 +38,7 @@ void updateHeight(AVLNode* root) {
         root->height = rightHeight + 1;
 }
 
+// Function to calculate the balance factor of an AVL node.
 int getBalance(AVLNode* root) {
     if (root == NULL)
         return 0;
@@ -41,6 +46,7 @@ int getBalance(AVLNode* root) {
     return getHeight(root->left) - getHeight(root->right);
 }
 
+// Function to perform a right rotation on an AVL node.
 AVLNode* rotateRight(AVLNode* root) {
     AVLNode* temp = root->left;
     AVLNode* parent = root->parent;
@@ -68,6 +74,7 @@ AVLNode* rotateRight(AVLNode* root) {
     return temp;
 }
 
+// Function to perform a left rotation on an AVL node.
 AVLNode* rotateLeft(AVLNode* root) {
     AVLNode* temp = root->right;
     AVLNode* parent = root->parent;
@@ -95,10 +102,12 @@ AVLNode* rotateLeft(AVLNode* root) {
     return temp;
 }
 
+// Function to insert a key into the AVL tree.
 AVLNode* insertAVL(AVLNode* root, int key) {
     AVLNode* temp = root;
     AVLNode* parent = NULL;
 
+    // Traverse to find the insertion point.
     while (temp != NULL) {
         parent = temp;
 
@@ -107,7 +116,7 @@ AVLNode* insertAVL(AVLNode* root, int key) {
         else if (key > temp->key)
             temp = temp->right;
         else
-            return root;
+            return root; // Prevent duplicate keys.
     }
 
     AVLNode* newNode = new AVLNode;
@@ -128,49 +137,40 @@ AVLNode* insertAVL(AVLNode* root, int key) {
 
     temp = parent;
 
+    // Retrace upwards to update heights and restore AVL balance.
     while (temp != NULL) {
         updateHeight(temp);
 
         int balance = getBalance(temp);
 
         if (balance > 1 || balance < -1) {
+            // Left-Left Case.
             if (balance > 1 && key < temp->left->key) {
                 AVLNode* newRoot = rotateRight(temp);
-
-                if (newRoot->parent == NULL)
-                    root = newRoot;
-
+                if (newRoot->parent == NULL) root = newRoot;
                 break;
             }
 
+            // Right-Right Case.
             if (balance < -1 && key > temp->right->key) {
                 AVLNode* newRoot = rotateLeft(temp);
-
-                if (newRoot->parent == NULL)
-                    root = newRoot;
-
+                if (newRoot->parent == NULL) root = newRoot;
                 break;
             }
 
+            // Left-Right Case.
             if (balance > 1 && key > temp->left->key) {
                 rotateLeft(temp->left);
-
                 AVLNode* newRoot = rotateRight(temp);
-
-                if (newRoot->parent == NULL)
-                    root = newRoot;
-
+                if (newRoot->parent == NULL) root = newRoot;
                 break;
             }
 
+            // Right-Left Case.
             if (balance < -1 && key < temp->right->key) {
                 rotateRight(temp->right);
-
                 AVLNode* newRoot = rotateLeft(temp);
-
-                if (newRoot->parent == NULL)
-                    root = newRoot;
-
+                if (newRoot->parent == NULL) root = newRoot;
                 break;
             }
         }
@@ -181,9 +181,11 @@ AVLNode* insertAVL(AVLNode* root, int key) {
     return root;
 }
 
+// Function to delete a key from the AVL tree.
 AVLNode* deleteAVL(AVLNode* root, int key) {
     AVLNode* temp = root;
 
+    // Traverse to find the node to delete.
     while (temp != NULL && temp->key != key) {
         if (key < temp->key)
             temp = temp->left;
@@ -194,6 +196,7 @@ AVLNode* deleteAVL(AVLNode* root, int key) {
     if (temp == NULL)
         return root;
 
+    // If node has two children, swap with inorder successor.
     if (temp->left != NULL && temp->right != NULL) {
         AVLNode* successor = temp->right;
 
@@ -213,16 +216,15 @@ AVLNode* deleteAVL(AVLNode* root, int key) {
 
     AVLNode* parent = temp->parent;
 
+    // Delete root.
     if (parent == NULL) {
         root = child;
-
-        if (child != NULL)
-            child->parent = NULL;
-
+        if (child != NULL) child->parent = NULL;
         delete temp;
         return root;
     }
 
+    // Replace deleted node with its child.
     if (temp == parent->left)
         parent->left = child;
     else
@@ -232,55 +234,38 @@ AVLNode* deleteAVL(AVLNode* root, int key) {
         child->parent = parent;
 
     delete temp;
-
     temp = parent;
 
+    // Retrace upwards to update heights and restore AVL balance.
     while (temp != NULL) {
         updateHeight(temp);
-
         int balance = getBalance(temp);
 
         if (balance > 1) {
             AVLNode* y = temp->left;
-
             if (getHeight(y->left) >= getHeight(y->right)) {
                 AVLNode* newRoot = rotateRight(temp);
-
-                if (newRoot->parent == NULL)
-                    root = newRoot;
-
+                if (newRoot->parent == NULL) root = newRoot;
                 temp = newRoot->parent;
             }
             else {
                 rotateLeft(y);
-
                 AVLNode* newRoot = rotateRight(temp);
-
-                if (newRoot->parent == NULL)
-                    root = newRoot;
-
+                if (newRoot->parent == NULL) root = newRoot;
                 temp = newRoot->parent;
             }
         }
         else if (balance < -1) {
             AVLNode* y = temp->right;
-
             if (getHeight(y->right) >= getHeight(y->left)) {
                 AVLNode* newRoot = rotateLeft(temp);
-
-                if (newRoot->parent == NULL)
-                    root = newRoot;
-
+                if (newRoot->parent == NULL) root = newRoot;
                 temp = newRoot->parent;
             }
             else {
                 rotateRight(y);
-
                 AVLNode* newRoot = rotateLeft(temp);
-
-                if (newRoot->parent == NULL)
-                    root = newRoot;
-
+                if (newRoot->parent == NULL) root = newRoot;
                 temp = newRoot->parent;
             }
         }
@@ -292,23 +277,21 @@ AVLNode* deleteAVL(AVLNode* root, int key) {
     return root;
 }
 
+// Function to check if a Red-Black node is red.
 bool isRed(RBNode* root) {
-    if (root == NULL)
-        return false;
-
+    if (root == NULL) return false;
     return root->color;
 }
 
+// Function to check if a Red-Black node is black.
 bool isBlack(RBNode* root) {
-    if (root == NULL)
-        return true;
-
+    if (root == NULL) return true;
     return !root->color;
 }
 
+// Function to perform a left rotation on a Red-Black node.
 void leftRotate(RBNode*& root, RBNode* temp) {
     RBNode* child = temp->right;
-
     temp->right = child->left;
 
     if (child->left != NULL)
@@ -327,9 +310,9 @@ void leftRotate(RBNode*& root, RBNode* temp) {
     temp->parent = child;
 }
 
+// Function to perform a right rotation on a Red-Black node.
 void rightRotate(RBNode*& root, RBNode* temp) {
     RBNode* child = temp->left;
-
     temp->left = child->right;
 
     if (child->right != NULL)
@@ -348,6 +331,7 @@ void rightRotate(RBNode*& root, RBNode* temp) {
     temp->parent = child;
 }
 
+// Function to restore Red-Black properties after insertion.
 void insertRBUpdate(RBNode*& root, RBNode* x) {
     while (x != root && isRed(x->parent)) {
         RBNode* b = x->parent;
@@ -355,7 +339,6 @@ void insertRBUpdate(RBNode*& root, RBNode* x) {
 
         if (b == a->left) {
             RBNode* c = a->right;
-
             if (isRed(c)) {
                 b->color = false;
                 c->color = false;
@@ -369,7 +352,6 @@ void insertRBUpdate(RBNode*& root, RBNode* x) {
                     b = x->parent;
                     a = b->parent;
                 }
-
                 b->color = false;
                 a->color = true;
                 rightRotate(root, a);
@@ -377,7 +359,6 @@ void insertRBUpdate(RBNode*& root, RBNode* x) {
         }
         else {
             RBNode* c = a->left;
-
             if (isRed(c)) {
                 b->color = false;
                 c->color = false;
@@ -391,42 +372,39 @@ void insertRBUpdate(RBNode*& root, RBNode* x) {
                     b = x->parent;
                     a = b->parent;
                 }
-
                 b->color = false;
                 a->color = true;
                 leftRotate(root, a);
             }
         }
     }
-
     root->color = false;
 }
 
+// Function to insert a key into the Red-Black tree.
 RBNode* insertRB(RBNode* root, int key) {
     RBNode* temp = root;
     RBNode* parent = NULL;
 
     while (temp != NULL) {
         parent = temp;
-
         if (key < temp->key)
             temp = temp->left;
         else if (key > temp->key)
             temp = temp->right;
         else
-            return root;
+            return root; // Prevent duplicate keys.
     }
 
     RBNode* newNode = new RBNode;
-
     newNode->key = key;
     newNode->left = NULL;
     newNode->right = NULL;
     newNode->parent = parent;
-    newNode->color = true;
+    newNode->color = true; // Newly inserted nodes are initially red.
 
     if (parent == NULL) {
-        newNode->color = false;
+        newNode->color = false; // Root is always black.
         return newNode;
     }
 
@@ -436,19 +414,18 @@ RBNode* insertRB(RBNode* root, int key) {
         parent->right = newNode;
 
     insertRBUpdate(root, newNode);
-
     return root;
 }
 
+// Function to find the node with the minimum key in a Red-Black subtree.
 RBNode* minimum(RBNode* root) {
     RBNode* temp = root;
-
     while (temp->left != NULL)
         temp = temp->left;
-
     return temp;
 }
 
+// Function to restore Red-Black properties after deletion.
 void deleteRBUpdate(RBNode*& root, RBNode* x, RBNode* parent) {
     while (x != root && parent != NULL) {
         if (x == parent->left) {
@@ -463,49 +440,34 @@ void deleteRBUpdate(RBNode*& root, RBNode* x, RBNode* parent) {
 
             RBNode* c = NULL;
             RBNode* d = NULL;
-
             if (b != NULL) {
                 c = b->left;
                 d = b->right;
             }
 
             if (isBlack(c) && isBlack(d)) {
-                if (b != NULL)
-                    b->color = true;
-
+                if (b != NULL) b->color = true;
                 if (isRed(parent)) {
                     parent->color = false;
                     break;
                 }
-
                 x = parent;
                 parent = x->parent;
             }
             else {
                 if (isBlack(d)) {
-                    if (c != NULL)
-                        c->color = false;
-
-                    if (b != NULL)
-                        b->color = true;
-
+                    if (c != NULL) c->color = false;
+                    if (b != NULL) b->color = true;
                     rightRotate(root, b);
                     b = parent->right;
-
                     if (b != NULL) {
                         c = b->left;
                         d = b->right;
                     }
                 }
-
-                if (b != NULL)
-                    b->color = parent->color;
-
+                if (b != NULL) b->color = parent->color;
                 parent->color = false;
-
-                if (d != NULL)
-                    d->color = false;
-
+                if (d != NULL) d->color = false;
                 leftRotate(root, parent);
                 break;
             }
@@ -522,65 +484,49 @@ void deleteRBUpdate(RBNode*& root, RBNode* x, RBNode* parent) {
 
             RBNode* c = NULL;
             RBNode* d = NULL;
-
             if (b != NULL) {
                 c = b->left;
                 d = b->right;
             }
 
             if (isBlack(c) && isBlack(d)) {
-                if (b != NULL)
-                    b->color = true;
-
+                if (b != NULL) b->color = true;
                 if (isRed(parent)) {
                     parent->color = false;
                     break;
                 }
-
                 x = parent;
                 parent = x->parent;
             }
             else {
                 if (isBlack(c)) {
-                    if (d != NULL)
-                        d->color = false;
-
-                    if (b != NULL)
-                        b->color = true;
-
+                    if (d != NULL) d->color = false;
+                    if (b != NULL) b->color = true;
                     leftRotate(root, b);
                     b = parent->left;
-
                     if (b != NULL) {
                         c = b->left;
                         d = b->right;
                     }
                 }
-
-                if (b != NULL)
-                    b->color = parent->color;
-
+                if (b != NULL) b->color = parent->color;
                 parent->color = false;
-
-                if (c != NULL)
-                    c->color = false;
-
+                if (c != NULL) c->color = false;
                 rightRotate(root, parent);
                 break;
             }
         }
     }
 
-    if (x != NULL)
-        x->color = false;
-
-    if (root != NULL)
-        root->color = false;
+    if (x != NULL) x->color = false;
+    if (root != NULL) root->color = false;
 }
 
+// Function to delete a key from the Red-Black tree.
 RBNode* deleteRB(RBNode* root, int key) {
     RBNode* temp = root;
 
+    // Traverse to find the node to delete.
     while (temp != NULL && temp->key != key) {
         if (key < temp->key)
             temp = temp->left;
@@ -591,6 +537,7 @@ RBNode* deleteRB(RBNode* root, int key) {
     if (temp == NULL)
         return root;
 
+    // If node has two children, swap with inorder successor.
     if (temp->left != NULL && temp->right != NULL) {
         RBNode* successor = minimum(temp->right);
         temp->key = successor->key;
@@ -607,20 +554,16 @@ RBNode* deleteRB(RBNode* root, int key) {
     RBNode* parent = temp->parent;
     bool deletedColor = temp->color;
 
+    // Delete root.
     if (parent == NULL) {
         root = child;
-
-        if (child != NULL)
-            child->parent = NULL;
-
+        if (child != NULL) child->parent = NULL;
         delete temp;
-
-        if (root != NULL)
-            root->color = false;
-
+        if (root != NULL) root->color = false;
         return root;
     }
 
+    // Replace deleted node with its child.
     if (temp == parent->left)
         parent->left = child;
     else
@@ -631,6 +574,7 @@ RBNode* deleteRB(RBNode* root, int key) {
 
     delete temp;
 
+    // Restore properties if a black node was deleted.
     if (!deletedColor)
         deleteRBUpdate(root, child, parent);
 
@@ -640,12 +584,14 @@ RBNode* deleteRB(RBNode* root, int key) {
     return root;
 }
 
+// Function to count structural mismatches between the AVL and Red-Black trees.
 int countIgnored(AVLNode* avl, RBNode* rb) {
     if (avl == NULL)
         return 0;
 
     int count = 0;
 
+    // Mismatch identified if the Red-Black node is NULL or keys differ.
     if (rb == NULL || avl->key != rb->key)
         count++;
 
@@ -655,6 +601,21 @@ int countIgnored(AVLNode* avl, RBNode* rb) {
     return count;
 }
 
+// Functions to free dynamically allocated tree memory to prevent memory leaks.
+void freeTree(AVLNode* root) {
+    if (root == NULL) return;
+    freeTree(root->left);
+    freeTree(root->right);
+    delete root;
+}
+
+void freeTree(RBNode* root) {
+    if (root == NULL) return;
+    freeTree(root->left);
+    freeTree(root->right);
+    delete root;
+}
+
 int main() {
     AVLNode* avlRoot = NULL;
     RBNode* rbRoot = NULL;
@@ -662,6 +623,7 @@ int main() {
     int Q;
     cin >> Q;
 
+    // Process all insertion and deletion queries.
     for (int i = 0; i < Q; ++i) {
         char operation;
         int key;
@@ -687,6 +649,7 @@ int main() {
                 rbRoot->parent = NULL;
         }
 
+        // Compare tree structures and output results.
         int ignored = countIgnored(avlRoot, rbRoot);
 
         if (ignored == 0)
@@ -711,5 +674,9 @@ int main() {
         cout << '\n';
     }
 
+    // Clean up memory before program terminates.
+    freeTree(avlRoot);
+    freeTree(rbRoot);
+    
     return 0;
 }

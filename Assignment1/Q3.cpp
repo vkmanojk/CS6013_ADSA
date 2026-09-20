@@ -218,7 +218,6 @@ void insertNodeUpdate(node*& root, node* x) {
 
             node* c = a->right;
 
-            // Parent and uncle are red.
             if (isRed(c)) {
                 b->color = false;
                 c->color = false;
@@ -251,7 +250,6 @@ void insertNodeUpdate(node*& root, node* x) {
 
             node* c = a->left;
 
-            // Parent and uncle are red.
             if (isRed(c)) {
                 b->color = false;
                 c->color = false;
@@ -348,7 +346,8 @@ void replaceSubTree(node*& root, node* temp, node* child) {
 
 // Function to restore Red-Black properties after deletion.
 void deleteNodeUpdate(node*& root, node* x, node* a) {
-    while (x != root) {
+    // Add isBlack(x) condition to prevent erroneous entry when x is RED
+    while (x != root && isBlack(x)) {
 
         if (a == NULL)
             break;
@@ -544,6 +543,17 @@ node* deleteNode(node* root, int key) {
     return root;
 }
 
+// Function to free dynamically allocated tree memory.
+void freeTree(node* root) {
+    if (root == NULL)
+        return;
+    
+    freeTree(root->left);
+    freeTree(root->right);
+    delete root;
+}
+
+
 int main() {
     node *root = NULL, *keyNode;
     int N, S, I, D, key;
@@ -577,7 +587,7 @@ int main() {
             root->parent = NULL;
         updateBlackDepth(root, 0);
         if (flag)
-            cout<<"Duplicate Key\n";
+            cout<<"Duplicate key\n";
         else
             displayTraversals(root);
     }
@@ -597,5 +607,6 @@ int main() {
             displayTraversals(root);
     }
 
+    freeTree(root);
     return 0;
 }

@@ -55,39 +55,18 @@ int main() {
     for (int i = 0; i < q; ++i)
         cin >> randomSet[i];
 
-    /*
-       Extract the first q elements from the original unmodified stream 
-       to build the first half of the test set.
-    */
+    //Extract the first q elements from the original unmodified stream to build the first half of the test set.
     vector<int> testSet(keys.begin(), keys.begin() + q);
-
-    /*
-       Remove duplicate elements from the dataset.
-    */
 
     sort(keys.begin(), keys.end());
 
-    keys.erase(
-        unique(keys.begin(), keys.end()),
-        keys.end()
-    );
+    keys.erase(unique(keys.begin(), keys.end()), keys.end()); //Remove duplicates
 
     int n = keys.size();
+    long long p = findPrime(maximum); //Choose appropriate p
 
-    /*
-       Choose p greater than every dataset key.
-    */
-
-    long long p = findPrime(maximum);
-
-    /*
-       First-level hashing.
-
-       Find a hash function such that:
-
-       sum |bucket[i]|^2 <= 4n
-    */
-
+    //  First-level hashing: sum |bucket[i]|^2 <= 4n
+    
     srand(1);
 
     int a1;
@@ -120,10 +99,8 @@ int main() {
             break;
     }
 
-    /*
-       Second-level hash tables.
-    */
-
+    //Second-level hash tables.
+    
     vector<int> a2(n, 0);
     vector<int> b2(n, 0);
 
@@ -138,10 +115,7 @@ int main() {
         if (size == 0)
             continue;
 
-        /*
-           If there is only one key,
-           a table of size 1 is enough.
-        */
+        //If there is only one key, a table of size 1 is enough.
 
         if (size == 1) {
             T[i].resize(1);
@@ -152,14 +126,11 @@ int main() {
 
             T[i][0] = bucket[i][0];
             occupied[i][0] = true;
-
             continue;
         }
 
-        /*
-           Find a second-level hash function
-           with no collisions.
-        */
+        //Find a second-level hash function with no collisions.
+
 
         while (true) {
             a2[i] = rand() % (p - 1) + 1;
@@ -197,13 +168,7 @@ int main() {
         }
     }
 
-    /*
-       Construct the test set.
-
-       Test set =
-       first q elements of stream UNION random set.
-    */
-
+    //  Test set = first q elements of stream UNION random set.
     sort(randomSet.begin(), randomSet.end());
 
     randomSet.erase(
@@ -301,9 +266,7 @@ int main() {
         else
             cout<<"NOT FOUND\n";
 
-        /*
-           Update confusion matrix.
-        */
+        //Update confusion matrix.
 
         if (actual && found && value == x)
             ++TP;
@@ -319,9 +282,7 @@ int main() {
             correct = false;
     }
 
-    /*
-       Print confusion matrix.
-    */
+    //Print confusion matrix.
 
     cout<<"CONFUSION_MATRIX\n";
     cout<<"ACTUAL/PREDICTED PRESENT ABSENT\n";

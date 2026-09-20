@@ -2,6 +2,7 @@
 #include <vector>
 using namespace std;
 
+// Custom BigInteger class to handle massive combinatorial results.
 struct BigInteger {
     vector<int> digits;
 
@@ -18,7 +19,7 @@ struct BigInteger {
     void multiply(int value) {
         long long carry = 0;
 
-        for (int i = 0; i < digits.size(); i++) {
+        for (int i = 0; i < (int)digits.size(); i++) {
             long long current = 1LL * digits[i] * value + carry;
             digits[i] = current % 1000000000;
             carry = current / 1000000000;
@@ -47,10 +48,10 @@ struct BigInteger {
         BigInteger result(0);
         result.digits.assign(digits.size() + other.digits.size(), 0);
 
-        for (int i = 0; i < digits.size(); i++) {
+        for (int i = 0; i < (int)digits.size(); i++) {
             long long carry = 0;
 
-            for (int j = 0; j < other.digits.size(); j++) {
+            for (int j = 0; j < (int)other.digits.size(); j++) {
                 long long current = 1LL * digits[i] * other.digits[j]
                                   + result.digits[i + j]
                                   + carry;
@@ -92,7 +93,7 @@ struct BigInteger {
     void print() {
         cout << digits.back();
 
-        for (int i = digits.size() - 2; i >= 0; i++) {
+        for (int i = digits.size() - 2; i >= 0; i--) {
             cout.width(9);
             cout.fill('0');
             cout << digits[i];
@@ -102,16 +103,27 @@ struct BigInteger {
     }
 };
 
+// BST Node augmented with subtreeSize to remove the need for manual counting.
 struct Node {
     int key;
+    int subtreeSize;
     Node* left;
     Node* right;
 };
 
+// Function to safely extract subtree size.
+int getSize(Node* root) {
+    if (root == NULL)
+        return 0;
+    return root->subtreeSize;
+}
+
+// Function to insert a key, reject duplicates, and update sizes.
 Node* insert(Node* root, int key) {
     if (root == NULL) {
         Node* newNode = new Node;
         newNode->key = key;
+        newNode->subtreeSize = 1;
         newNode->left = NULL;
         newNode->right = NULL;
         return newNode;
@@ -119,12 +131,16 @@ Node* insert(Node* root, int key) {
 
     if (key < root->key)
         root->left = insert(root->left, key);
-    else
+    else if (key > root->key)
         root->right = insert(root->right, key);
+    else
+        return root; // Properly prevent duplicate keys.
 
+    root->subtreeSize = 1 + getSize(root->left) + getSize(root->right);
     return root;
 }
 
+// Function to calculate the combinatorial (n choose k).
 BigInteger combination(int n, int k) {
     if (k > n - k)
         k = n - k;
@@ -139,60 +155,32 @@ BigInteger combination(int n, int k) {
     return result;
 }
 
+// Function to recursively calculate total valid permutations.
 BigInteger countWays(Node* root) {
     if (root == NULL)
         return BigInteger(1);
 
-    int leftSize = 0;
-    int rightSize = 0;
+    int leftSize = getSize(root->left);
+    int rightSize = getSize(root->right);
 
-    vector<Node*> leftNodes;
-    vector<Node*> rightNodes;
-
-    if (root->left != NULL) {
-        vector<Node*> stack;
-        stack.push_back(root->left);
-
-        while (!stack.empty()) {
-            Node* current = stack.back();
-            stack.pop_back();
-
-            leftSize++;
-
-            if (current->left != NULL)
-                stack.push_back(current->left);
-
-            if (current->right != NULL)
-                stack.push_back(current->right);
-        }
-    }
-
-    if (root->right != NULL) {
-        vector<Node*> stack;
-        stack.push_back(root->right);
-
-        while (!stack.empty()) {
-            Node* current = stack.back();
-            stack.pop_back();
-
-            rightSize++;
-
-            if (current->left != NULL)
-                stack.push_back(current->left);
-
-            if (current->right != NULL)
-                stack.push_back(current->right);
-        }
-    }
-
-    BigInteger leftWays = countWays(root->left);
-    BigInteger rightWays = countWays(root->right);
+    // Calculate ways to interleave the left and right subtrees.
     BigInteger ways = combination(leftSize + rightSize, leftSize);
 
-    ways = ways * leftWays;
-    ways = ways * rightWays;
+    // Multiply by the internal permutations of each subtree.
+    ways = ways * countWays(root->left);
+    ways = ways * countWays(root->right);
 
     return ways;
+}
+
+// Function to deallocate the BST.
+void freeTree(Node* root) {
+    if (root == NULL)
+        return;
+    
+    freeTree(root->left);
+    freeTree(root->right);
+    delete root;
 }
 
 int main() {
@@ -207,9 +195,12 @@ int main() {
         root = insert(root, key);
     }
 
+    // Calculate total ways and subtract 1 to exclude the original array.
     BigInteger answer = countWays(root);
     answer.subtractOne();
     answer.print();
+
+    freeTree(root);
 
     return 0;
 }
