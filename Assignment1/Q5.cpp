@@ -56,6 +56,12 @@ int main() {
         cin >> randomSet[i];
 
     /*
+       Extract the first q elements from the original unmodified stream 
+       to build the first half of the test set.
+    */
+    vector<int> testSet(keys.begin(), keys.begin() + q);
+
+    /*
        Remove duplicate elements from the dataset.
     */
 
@@ -195,7 +201,7 @@ int main() {
        Construct the test set.
 
        Test set =
-       distinct dataset elements UNION random set.
+       first q elements of stream UNION random set.
     */
 
     sort(randomSet.begin(), randomSet.end());
@@ -204,8 +210,6 @@ int main() {
         unique(randomSet.begin(), randomSet.end()),
         randomSet.end()
     );
-
-    vector<int> testSet = keys;
 
     testSet.insert(
         testSet.end(),
