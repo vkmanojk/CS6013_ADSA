@@ -10,7 +10,7 @@ struct BTreeNode {
     struct BTreeNode **children; // allocate MAX + 1 entries
 };
 
-// Helper to allocate and initialize a new B-tree node
+// Allocate and initialize a new B-tree node
 BTreeNode* createNode() {
     BTreeNode* node = new BTreeNode;
     node->key = new int[MAX];
@@ -27,7 +27,8 @@ bool isLeaf(BTreeNode* node) {
 
 // (a) search(root, key)
 bool search(BTreeNode* root, int key) {
-    if (root == nullptr) return false;
+    if (root == nullptr) 
+        return false;
     int i = 0;
     while (i < root->count && key > root->key[i]) 
         ++i;
@@ -38,8 +39,7 @@ bool search(BTreeNode* root, int key) {
     return search(root->children[i], key);
 }
 
-// (b) insert(root, key) - Top-down insertion
-
+// (b) insert(root, key)
 void splitChild(BTreeNode* x, int i) {
     BTreeNode* y = x->children[i];
     BTreeNode* z = createNode();
