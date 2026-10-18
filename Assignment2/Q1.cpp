@@ -16,7 +16,7 @@ BTreeNode* createNode() {
     node->key = new int[MAX];
     node->count = 0;
     node->children = new BTreeNode*[MAX + 1];
-    for (int i = 0; i <= MAX; i++) 
+    for (int i = 0; i <= MAX; ++i) 
         node->children[i] = nullptr; //Unused children set as null
     return node;
 }
@@ -30,7 +30,7 @@ bool search(BTreeNode* root, int key) {
     if (root == nullptr) return false;
     int i = 0;
     while (i < root->count && key > root->key[i]) 
-        i++;
+        ++i;
     if (i < root->count && root->key[i] == key) 
         return true;
     if (isLeaf(root)) 
@@ -46,13 +46,13 @@ void splitChild(BTreeNode* x, int i) {
     z->count = MIN;
 
     // Copy the last MIN keys of y into z
-    for (int j = 0; j < MIN; j++) {
+    for (int j = 0; j < MIN; ++j) {
         z->key[j] = y->key[j + MIN + 1];
     }
 
     // If y is an internal node, copy the last MIN + 1 children of y into z
     if (!isLeaf(y)) {
-        for (int j = 0; j <= MIN; j++) {
+        for (int j = 0; j <= MIN; ++j) {
             z->children[j] = y->children[j + MIN + 1];
             y->children[j + MIN + 1] = nullptr;
         }
@@ -62,15 +62,13 @@ void splitChild(BTreeNode* x, int i) {
     y->count = MIN;
 
     // Shift children of x to make room for z
-    for (int j = x->count; j >= i + 1; j--) {
+    for (int j = x->count; j >= i + 1; --j) 
         x->children[j + 1] = x->children[j];
-    }
     x->children[i + 1] = z;
 
     // Shift keys of x to promote middleKey
-    for (int j = x->count - 1; j >= i; j--) {
+    for (int j = x->count - 1; j >= i; --j) 
         x->key[j + 1] = x->key[j];
-    }
     x->key[i] = middleKey;
     x->count++;
 }
@@ -82,14 +80,13 @@ void insertNonFull(BTreeNode* x, int k) {
     if (isLeaf(x)) {
         while (i >= 0 && k < x->key[i]) {
             x->key[i + 1] = x->key[i];
-            i--;
+            --i;
         }
         x->key[i + 1] = k;
         x->count++;
     } else {
-        while (i >= 0 && k < x->key[i]) {
+        while (i >= 0 && k < x->key[i])
             i--;
-        }
         i++; // Child index to descend into
 
         // Split full child before descending into it
@@ -104,11 +101,9 @@ void insertNonFull(BTreeNode* x, int k) {
 }
 
 bool insert(BTreeNode*& root, int key) {
-    // Duplicate insertions must leave the tree structure unchanged
-    if (search(root, key)) {
+    if (search(root, key)) 
         return false;
-    }
-
+    
     if (root == nullptr) {
         root = createNode();
         root->key[0] = key;
@@ -123,13 +118,11 @@ bool insert(BTreeNode*& root, int key) {
         splitChild(s, 0);
         root = s;
     }
-
     insertNonFull(root, key);
     return true;
 }
 
 // (c) deleteKey(root, key) - Top-down deletion
-
 int getPredecessor(BTreeNode* y) {
     BTreeNode* cur = y;
     while (!isLeaf(cur)) {
@@ -140,9 +133,8 @@ int getPredecessor(BTreeNode* y) {
 
 int getSuccessor(BTreeNode* z) {
     BTreeNode* cur = z;
-    while (!isLeaf(cur)) {
+    while (!isLeaf(cur)) 
         cur = cur->children[0];
-    }
     return cur->key[0];
 }
 
@@ -151,14 +143,12 @@ void borrowFromLeft(BTreeNode* x, int idx) {
     BTreeNode* child = x->children[idx];
     BTreeNode* leftSib = x->children[idx - 1];
 
-    for (int i = child->count - 1; i >= 0; i--) {
+    for (int i = child->count - 1; i >= 0; --i) 
         child->key[i + 1] = child->key[i];
-    }
 
     if (!isLeaf(child)) {
-        for (int i = child->count; i >= 0; i--) {
+        for (int i = child->count; i >= 0; --i) 
             child->children[i + 1] = child->children[i];
-        }
         child->children[0] = leftSib->children[leftSib->count];
         leftSib->children[leftSib->count] = nullptr;
     }
@@ -183,12 +173,12 @@ void borrowFromRight(BTreeNode* x, int idx) {
 
     x->key[idx] = rightSib->key[0];
 
-    for (int i = 1; i < rightSib->count; i++) {
+    for (int i = 1; i < rightSib->count; ++i) {
         rightSib->key[i - 1] = rightSib->key[i];
     }
 
     if (!isLeaf(rightSib)) {
-        for (int i = 1; i <= rightSib->count; i++) {
+        for (int i = 1; i <= rightSib->count; ++i) {
             rightSib->children[i - 1] = rightSib->children[i];
         }
         rightSib->children[rightSib->count] = nullptr;
@@ -205,23 +195,23 @@ void mergeChildren(BTreeNode* x, int idx) {
 
     y->key[MIN] = x->key[idx];
 
-    for (int i = 0; i < MIN; i++) {
+    for (int i = 0; i < MIN; ++i) {
         y->key[MIN + 1 + i] = z->key[i];
     }
 
     if (!isLeaf(y)) {
-        for (int i = 0; i <= MIN; i++) {
+        for (int i = 0; i <= MIN; ++i) {
             y->children[MIN + 1 + i] = z->children[i];
         }
     }
 
     y->count = MAX;
 
-    for (int i = idx + 1; i < x->count; i++) {
+    for (int i = idx + 1; i < x->count; ++i) {
         x->key[i - 1] = x->key[i];
     }
 
-    for (int i = idx + 2; i <= x->count; i++) {
+    for (int i = idx + 2; i <= x->count; ++i) {
         x->children[i - 1] = x->children[i];
     }
     x->children[x->count] = nullptr;
@@ -242,7 +232,7 @@ void deleteFromNode(BTreeNode* x, int k) {
     if (idx < x->count && x->key[idx] == k) {
         if (isLeaf(x)) {
             // Case 1: x is a leaf node
-            for (int i = idx + 1; i < x->count; i++) {
+            for (int i = idx + 1; i < x->count; ++i) {
                 x->key[i - 1] = x->key[i];
             }
             x->count--;
@@ -326,18 +316,18 @@ void levelOrderDisplay(BTreeNode* root) {
 
     while (!q.empty()) {
         int levelSize = q.size();
-        for (int i = 0; i < levelSize; i++) {
+        for (int i = 0; i < levelSize; ++i) {
             BTreeNode* curr = q.front();
             q.pop();
 
             if (i > 0) cout << " ";
-            for (int j = 0; j < curr->count; j++) {
+            for (int j = 0; j < curr->count; ++j) {
                 if (j > 0) cout << ",";
                 cout << curr->key[j];
             }
 
             if (!isLeaf(curr)) {
-                for (int j = 0; j <= curr->count; j++) {
+                for (int j = 0; j <= curr->count; ++j) {
                     if (curr->children[j] != nullptr) {
                         q.push(curr->children[j]);
                     }
@@ -351,18 +341,20 @@ void levelOrderDisplay(BTreeNode* root) {
 
 int main() {
     int n;
-    if (!(cin >> n >> MAX >> MIN)) return 0;
+    if (!(cin >> n >> MAX >> MIN)) 
+        return 0;
 
     BTreeNode* root = nullptr;
-    // Insert initial keys (repeated initial keys are ignored without output)
-    for (int i = 0; i < n; i++) {
+    // Insert initial keys
+    for (int i = 0; i < n; ++i) {
         int x;
         cin >> x;
         insert(root, x);
     }
 
     int q;
-    if (!(cin >> q)) return 0;
+    if (!(cin >> q)) 
+        return 0;
 
     while (q--) {
         int type;
@@ -370,30 +362,29 @@ int main() {
         if (type == 1) {
             int x;
             cin >> x;
-            if (search(root, x)) {
+            if (search(root, x))
                 cout << x << " is present\n";
-            } else {
+            else 
                 cout << x << " is not present\n";
-            }
+            
         } else if (type == 2) {
             int x;
             cin >> x;
-            if (insert(root, x)) {
+            if (insert(root, x)) 
                 cout << x << " is inserted\n";
-            } else {
+            else 
                 cout << x << " is already present\n";
-            }
+            
         } else if (type == 3) {
             int x;
             cin >> x;
-            if (deleteKey(root, x)) {
+            if (deleteKey(root, x))
                 cout << x << " is deleted\n";
-            } else {
+            else 
                 cout << x << " is not present. So it can not be deleted\n";
-            }
-        } else if (type == 4) {
+            
+        } else if (type == 4) 
             levelOrderDisplay(root);
-        }
     }
 
     return 0;
