@@ -17,7 +17,7 @@ void dijkstra(int start, const vector<vector<Edge>>& adj, vector<long long>& d) 
     d[start] = 0;
     priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> H;
     H.push({0, start});
-    while (!H.empty()) {
+    while(!H.empty()) {
         auto [dist_u, u] = H.top();
         H.pop(); 
         if (dist_u > d[u]) 
