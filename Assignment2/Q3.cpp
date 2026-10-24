@@ -27,12 +27,12 @@ bool is_red(Node* u) {
 void rotate_left(Node* x) {
     Node* y = x->right;
     x->right = y->left;
-    if (y->left)
+    if(y->left)
         y->left->parent = x;
     y->parent = x->parent;
-    if (!x->parent)
+    if(!x->parent)
         root = y;
-    else if (x == x->parent->left)
+    else if(x == x->parent->left)
         x->parent->left = y;
     else
         x->parent->right = y;
@@ -43,12 +43,12 @@ void rotate_left(Node* x) {
 void rotate_right(Node* x) {
     Node* y = x->left;
     x->left = y->right;
-    if (y->right)
+    if(y->right)
         y->right->parent = x;
     y->parent = x->parent;
-    if (!x->parent)
+    if(!x->parent)
         root = y;
-    else if (x == x->parent->left)
+    else if(x == x->parent->left)
         x->parent->left = y;
     else
         x->parent->right = y;
@@ -58,21 +58,21 @@ void rotate_right(Node* x) {
 
 void rotate_up(Node* child) {
     Node* p = child->parent;
-    if (!p)
+    if(!p)
         return;
-    if (child == p->left)
+    if(child == p->left)
         rotate_right(p);
     else
         rotate_left(p);
 }
 
 void fix_insert(Node* k) {
-    while (k != root && is_red(k->parent)) {
+    while(k != root && is_red(k->parent)) {
         Node* a = k->parent;
         Node* b = a->parent;
         Node* c = (a == b->left) ? b->right : b->left;
 
-        if (is_red(c)) {
+        if(is_red(c)) {
             a->color = BLACK;
             c->color = BLACK;
             b->color = RED;
@@ -80,7 +80,7 @@ void fix_insert(Node* k) {
         } else {
             bool a_is_left = (a == b->left);
             bool k_is_left = (k == a->left);
-            if (a_is_left == k_is_left) {
+            if(a_is_left == k_is_left) {
                 rotate_up(a);
                 a->color = BLACK;
                 b->color = RED;
@@ -93,18 +93,18 @@ void fix_insert(Node* k) {
             break;
         }
     }
-    if (root)
+    if(root)
         root->color = BLACK;
 }
 
 void insert_key(long long key) {
     Node* p = nullptr;
     Node* curr = root;
-    while (curr) {
+    while(curr) {
         p = curr;
-        if (key == curr->key)
+        if(key == curr->key)
             return;
-        else if (key < curr->key)
+        else if(key < curr->key)
             curr = curr->left;
         else
             curr = curr->right;
@@ -113,9 +113,9 @@ void insert_key(long long key) {
     Node* k = new Node(key);
     k->parent = p;
 
-    if (!p)
+    if(!p)
         root = k;
-    else if (key < p->key)
+    else if(key < p->key)
         p->left = k;
     else
         p->right = k;
@@ -125,20 +125,20 @@ void insert_key(long long key) {
 
 // Range enumeration: visits nodes in [low, high] in increasing order
 void rb_enumerate(Node* u, long long low, long long high, bool& printed_any) {
-    if (!u)
+    if(!u)
         return;
 
-    if (u->key > low)
+    if(u->key > low)
         rb_enumerate(u->left, low, high, printed_any);
 
-    if (u->key >= low && u->key <= high) {
-        if (printed_any)
-            cout << " ";
-        cout << u->key;
+    if(u->key >= low && u->key <= high) {
+        if(printed_any)
+            cout<<" ";
+        cout<<u->key;
         printed_any = true;
     }
 
-    if (u->key < high)
+    if(u->key < high)
         rb_enumerate(u->right, low, high, printed_any);
 }
 
@@ -147,29 +147,29 @@ int main() {
     cin.tie(NULL);
 
     int n;
-    if (!(cin >> n))
+    if(!(cin>>n))
         return 0;
 
-    for (int i = 0; i < n; ++i) {
+    for(int i = 0; i < n; ++i) {
         long long x;
-        cin >> x;
+        cin>>x;
         insert_key(x);
     }
 
     int q;
-    if (!(cin >> q))
+    if(!(cin>>q))
         return 0;
 
-    while (q--) {
+    while(q--) {
         long long low, high;
-        cin >> low >> high;
+        cin>>low>>high;
 
         bool printed_any = false;
         rb_enumerate(root, low, high, printed_any);
 
-        if (!printed_any)
-            cout << "EMPTY";
-        cout << "\n";
+        if(!printed_any)
+            cout<<"EMPTY";
+        cout<<"\n";
     }
 
     return 0;
