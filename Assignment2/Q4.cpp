@@ -4,17 +4,17 @@
 
 using namespace std;
 
-struct TwoSAT {
+struct TwoSatSolver {
     int n;
     vector<vector<int>> adj, adj_rev;
-    vector<int> order, scc, assignment;
+    vector<int> order, comp_id, assignment;
     vector<bool> visited;
-    int scc_cnt;
+    int comp_count;
 
-    TwoSAT(int n) : n(n) {
+    TwoSatSolver(int num_vars) : n(num_vars) {
         adj.resize(2 * n);
         adj_rev.resize(2 * n);
-        scc.resize(2 * n);
+        comp_id.resize(2 * n);
         assignment.resize(n);
     }
 
@@ -23,69 +23,96 @@ struct TwoSAT {
         adj_rev[v].push_back(u);
     }
 
-    void add_clause(int u, bool u_is_pos, int v, bool v_is_pos) {
-        int u_idx = u * 2 + (u_is_pos ? 0 : 1);
-        int v_idx = v * 2 + (v_is_pos ? 0 : 1);
-        int not_u = u_idx ^ 1;
-        int not_v = v_idx ^ 1;        
-        add_implication(not_u, v_idx);
-        add_implication(not_v, u_idx);
+    void add_clause(int u, bool u_pos, int v, bool v_pos) {
+        int u_lit = u * 2 + (u_pos ? 0 : 1);
+        int v_lit = v * 2 + (v_pos ? 0 : 1);
+        int not_u = u_lit ^ 1;
+        int not_v = v_lit ^ 1;
+        add_implication(not_u, v_lit);
+        add_implication(not_v, u_lit);
     }
 
-    void dfs1(int u) {
-        visited[u] = true;
-        for (int v : adj[u]) 
-            if (!visited[v]) 
-                dfs1(v);
-        order.push_back(u);
+    // Iterative post-order DFS to prevent stack overflow on deep graphs
+    void dfs1(int start_node) {
+        vector<pair<int, int>> st;
+        st.push_back({start_node, 0});
+        visited[start_node] = true;
+        while (!st.empty()) {
+            int u = st.back().first;
+            int &edge_idx = st.back().second;
+            if (edge_idx < (int)adj[u].size()) {
+                int v = adj[u][edge_idx++];
+                if (!visited[v]) {
+                    visited[v] = true;
+                    st.push_back({v, 0});
+                }
+            } else {
+                order.push_back(u);
+                st.pop_back();
+            }
+        }
     }
 
-    void dfs2(int u, int c) {
-        scc[u] = c;
-        for (int v : adj_rev[u]) 
-            if (scc[v] == -1) dfs2(v, c);
+    // Iterative reachability on reversed graph
+    void dfs2(int start_node, int c) {
+        vector<int> st = {start_node};
+        comp_id[start_node] = c;
+        while (!st.empty()) {
+            int u = st.back();
+            st.pop_back();
+            for (int v : adj_rev[u])
+                if (comp_id[v] == -1) {
+                    comp_id[v] = c;
+                    st.push_back(v);
+                }
+        }
     }
 
     bool solve() {
         visited.assign(2 * n, false);
-        for (int i = 0; i < 2 * n; ++i) 
-            if (!visited[i]) 
+        for (int i = 0; i < 2 * n; ++i)
+            if (!visited[i])
                 dfs1(i);
-        scc.assign(2 * n, -1);
-        scc_cnt = 0;        
+
+        comp_id.assign(2 * n, -1);
+        comp_count = 0;
         for (int i = 2 * n - 1; i >= 0; --i) {
             int u = order[i];
-            if (scc[u] == -1) 
-                dfs2(u, scc_cnt++);
+            if (comp_id[u] == -1)
+                dfs2(u, comp_count++);
         }
+
         for (int i = 0; i < n; ++i) {
-            if (scc[2 * i] == scc[2 * i + 1])
-                return false; 
-            assignment[i] = scc[2 * i] > scc[2 * i + 1];
+            if (comp_id[2 * i] == comp_id[2 * i + 1])
+                return false;
+            assignment[i] = comp_id[2 * i] > comp_id[2 * i + 1];
         }
         return true;
     }
 };
 
 int main() {
-    int t, n, m;
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int t;
     if (cin >> t) {
         while (t--) {
+            int n, m;
             cin >> n >> m;
-            TwoSAT ts(n);
+            TwoSatSolver solver(n);
+
             for (int i = 0; i < m; ++i) {
                 int u, v;
-                cin >> u >> v;                
-                bool u_pos = (u > 0);
-                bool v_pos = (v > 0);
-                ts.add_clause(abs(u) - 1, (u > 0), abs(v) - 1, (v > 0));
+                cin >> u >> v;
+                solver.add_clause(abs(u) - 1, (u > 0), abs(v) - 1, (v > 0));
             }
-            if (ts.solve()) {
-                for (int i = 0; i < n; ++i) {
-                    cout << ts.assignment[i] << (i == n - 1 ? "" : " ");
-                }
+
+            if (solver.solve()) {
+                for (int i = 0; i < n; ++i)
+                    cout << solver.assignment[i] << (i == n - 1 ? "" : " ");
                 cout << "\n";
-            } else 
+            } else
                 cout << "Unsatisfiable\n";
         }
     }

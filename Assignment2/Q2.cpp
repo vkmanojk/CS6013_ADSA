@@ -1,18 +1,19 @@
 #include <iostream>
+
 using namespace std;
 
-enum Color {RED, BLACK};
+enum Color { RED, BLACK };
 
 struct Node {
     long long key;
     Color color;
-    int sz;
+    int size;
     Node *left, *right, *parent;
 
-    Node(long long k) {
-        key = k;
+    Node(long long val) {
+        key = val;
         color = RED;
-        sz = 1;
+        size = 1;
         left = nullptr;
         right = nullptr;
         parent = nullptr;
@@ -21,50 +22,51 @@ struct Node {
 
 Node* root = nullptr;
 
-int getSize(Node* u) {
-    return u ? u->sz : 0;
+int get_size(Node* u) {
+    return u ? u->size : 0;
 }
 
-void updateSize(Node* u) {
-    if (u) {
-        u->sz = 1 + getSize(u->left) + getSize(u->right);
-    }
+void update_size(Node* u) {
+    if (u)
+        u->size = 1 + get_size(u->left) + get_size(u->right);
 }
 
-void updateAncestorsSize(Node* u) {
+void update_ancestors(Node* u) {
     while (u) {
-        updateSize(u);
+        update_size(u);
         u = u->parent;
     }
 }
 
-bool isRed(Node* u) {
+bool is_red(Node* u) {
     return (u != nullptr && u->color == RED);
 }
 
-void rotateLeft(Node* x) {
+void rotate_left(Node* x) {
     Node* y = x->right;
     x->right = y->left;
-    if (y->left) y->left->parent = x;
+    if (y->left)
+        y->left->parent = x;
     y->parent = x->parent;
-    if (!x->parent) 
+    if (!x->parent)
         root = y;
-    else if (x == x->parent->left) 
+    else if (x == x->parent->left)
         x->parent->left = y;
     else
         x->parent->right = y;
     y->left = x;
     x->parent = y;
-    updateSize(x);
-    updateSize(y);
+    update_size(x);
+    update_size(y);
 }
 
-void rotateRight(Node* x) {
+void rotate_right(Node* x) {
     Node* y = x->left;
     x->left = y->right;
-    if (y->right) y->right->parent = x;
+    if (y->right)
+        y->right->parent = x;
     y->parent = x->parent;
-    if (!x->parent) 
+    if (!x->parent)
         root = y;
     else if (x == x->parent->left)
         x->parent->left = y;
@@ -72,76 +74,78 @@ void rotateRight(Node* x) {
         x->parent->right = y;
     y->right = x;
     x->parent = y;
-    updateSize(x);
-    updateSize(y);
+    update_size(x);
+    update_size(y);
 }
 
-void rotateUp(Node* childNode) {
-    Node* p = childNode->parent;
-    if (!p) 
+void rotate_up(Node* child) {
+    Node* p = child->parent;
+    if (!p)
         return;
-    if (childNode == p->left) 
-        rotateRight(p);
-    else 
-        rotateLeft(p);
+    if (child == p->left)
+        rotate_right(p);
+    else
+        rotate_left(p);
 }
 
-void fixInsert(Node* k) {
-    while (k != root && isRed(k->parent)) {
+void fix_insert(Node* k) {
+    while (k != root && is_red(k->parent)) {
         Node* a = k->parent;
         Node* b = a->parent;
         Node* c = (a == b->left) ? b->right : b->left;
-        if (isRed(c)) {
+
+        if (is_red(c)) {
             a->color = BLACK;
             c->color = BLACK;
             b->color = RED;
             k = b;
         } else {
-            bool aIsLeft = (a == b->left);
-            bool kIsLeft = (k == a->left);
-            if (aIsLeft == kIsLeft) {
-                rotateUp(a);
+            bool a_is_left = (a == b->left);
+            bool k_is_left = (k == a->left);
+            if (a_is_left == k_is_left) {
+                rotate_up(a);
                 a->color = BLACK;
                 b->color = RED;
             } else {
-                rotateUp(k);
-                rotateUp(k);
+                rotate_up(k);
+                rotate_up(k);
                 k->color = BLACK;
                 b->color = RED;
             }
             break;
         }
     }
-    if (root) 
+    if (root)
         root->color = BLACK;
 }
 
-void fixDeletion(Node* u, Node* a) {
+void fix_deletion(Node* u, Node* a) {
     while (u != root && a != nullptr) {
-        bool uIsRight = (u == a->right);
-        Node* b = uIsRight ? a->left : a->right;
+        bool u_is_right = (u == a->right);
+        Node* b = u_is_right ? a->left : a->right;
         if (u == nullptr) {
             b = (a->left != nullptr) ? a->left : a->right;
-            uIsRight = (b == a->left);
+            u_is_right = (b == a->left);
         }
-        if (isRed(a)) {
-            Node* innerC = uIsRight ? b->right : b->left;
-            Node* outerC = uIsRight ? b->left : b->right;
-            if (!isRed(innerC) && !isRed(outerC)) {
+
+        if (is_red(a)) {
+            Node* inner_c = u_is_right ? b->right : b->left;
+            Node* outer_c = u_is_right ? b->left : b->right;
+            if (!is_red(inner_c) && !is_red(outer_c)) {
                 a->color = BLACK;
                 b->color = RED;
                 return;
             } else {
-                if (isRed(innerC)) {
-                    Node* c = innerC;
-                    rotateUp(c);
-                    rotateUp(c);
+                if (is_red(inner_c)) {
+                    Node* c = inner_c;
+                    rotate_up(c);
+                    rotate_up(c);
                     c->color = RED;
                     a->color = BLACK;
                     b->color = BLACK;
                 } else {
-                    Node* c = outerC;
-                    rotateUp(b);
+                    Node* c = outer_c;
+                    rotate_up(b);
                     b->color = RED;
                     a->color = BLACK;
                     c->color = BLACK;
@@ -149,24 +153,24 @@ void fixDeletion(Node* u, Node* a) {
                 return;
             }
         } else {
-            if (!isRed(b)) {
-                Node* innerC = uIsRight ? b->right : b->left;
-                Node* outerC = uIsRight ? b->left : b->right;
-                if (!isRed(innerC) && !isRed(outerC)) {
+            if (!is_red(b)) {
+                Node* inner_c = u_is_right ? b->right : b->left;
+                Node* outer_c = u_is_right ? b->left : b->right;
+                if (!is_red(inner_c) && !is_red(outer_c)) {
                     b->color = RED;
                     u = a;
                     a = u->parent;
                 } else {
-                    if (isRed(innerC)) {
-                        Node* c = innerC;
-                        rotateUp(c);
-                        rotateUp(c);
+                    if (is_red(inner_c)) {
+                        Node* c = inner_c;
+                        rotate_up(c);
+                        rotate_up(c);
                         c->color = BLACK;
                         b->color = BLACK;
                         a->color = BLACK;
                     } else {
-                        Node* c = outerC;
-                        rotateUp(b);
+                        Node* c = outer_c;
+                        rotate_up(b);
                         b->color = BLACK;
                         a->color = BLACK;
                         c->color = BLACK;
@@ -174,27 +178,26 @@ void fixDeletion(Node* u, Node* a) {
                     return;
                 }
             } else {
-                Node* c = uIsRight ? b->right : b->left;
-                Node* outerD = uIsRight ? c->left : c->right;
-                Node* innerD = uIsRight ? c->right : c->left;
-                if (!isRed(outerD) && !isRed(innerD)) {
-                    rotateUp(b);
+                Node* c = u_is_right ? b->right : b->left;
+                Node* outer_d = u_is_right ? c->left : c->right;
+                Node* inner_d = u_is_right ? c->right : c->left;
+                if (!is_red(outer_d) && !is_red(inner_d)) {
+                    rotate_up(b);
                     b->color = BLACK;
                     a->color = BLACK;
                     c->color = RED;
                     return;
-                } 
-                else {
-                    if (!isRed(outerD)) {
-                        rotateUp(innerD);
-                        innerD->color = BLACK;
+                } else {
+                    if (!is_red(outer_d)) {
+                        rotate_up(inner_d);
+                        inner_d->color = BLACK;
                         c->color = RED;
-                        outerD = c;
-                        c = innerD;
+                        outer_d = c;
+                        c = inner_d;
                     }
-                    Node* d = outerD;
-                    rotateUp(c);
-                    rotateUp(c);
+                    Node* d = outer_d;
+                    rotate_up(c);
+                    rotate_up(c);
                     c->color = BLACK;
                     b->color = RED;
                     a->color = BLACK;
@@ -204,49 +207,52 @@ void fixDeletion(Node* u, Node* a) {
             }
         }
     }
-    if (root) 
+    if (root)
         root->color = BLACK;
 }
 
-Node* searchNode(long long key) {
+Node* search_node(long long key) {
     Node* curr = root;
     while (curr) {
-        if (key == curr->key) 
+        if (key == curr->key)
             return curr;
         curr = (key < curr->key) ? curr->left : curr->right;
     }
     return nullptr;
 }
 
-bool insertKey(long long key) {
-    Node* parent = nullptr;
+bool insert_key(long long key) {
+    Node* p = nullptr;
     Node* curr = root;
     while (curr) {
-        parent = curr;
-        if (key == curr->key) 
+        p = curr;
+        if (key == curr->key)
             return false;
-        else if (key < curr->key) 
+        else if (key < curr->key)
             curr = curr->left;
-        else 
+        else
             curr = curr->right;
     }
+
     Node* k = new Node(key);
-    k->parent = parent;
-    if (!parent)
+    k->parent = p;
+    if (!p)
         root = k;
-    else if (key < parent->key)
-        parent->left = k;
+    else if (key < p->key)
+        p->left = k;
     else
-        parent->right = k;
-    updateAncestorsSize(parent);
-    fixInsert(k);
+        p->right = k;
+
+    update_ancestors(p);
+    fix_insert(k);
     return true;
 }
 
-bool deleteKey(long long key) {
-    Node* z = searchNode(key);
-    if (!z) 
-        return false; 
+bool delete_key(long long key) {
+    Node* z = search_node(key);
+    if (!z)
+        return false;
+
     if (z->left && z->right) {
         Node* pred = z->left;
         while (pred->right)
@@ -254,69 +260,75 @@ bool deleteKey(long long key) {
         z->key = pred->key;
         z = pred;
     }
+
     Node* child = z->left ? z->left : z->right;
-    Node* a = z->parent;
+    Node* p = z->parent;
+
     if (child != nullptr) {
-        child->parent = a;
-        if (!a) 
+        child->parent = p;
+        if (!p)
             root = child;
-        else if (z == a->left) 
-            a->left = child;
+        else if (z == p->left)
+            p->left = child;
         else
-            a->right = child;
+            p->right = child;
         child->color = BLACK;
-        updateAncestorsSize(a);
+        update_ancestors(p);
         delete z;
         return true;
     }
+
     if (z == root) {
         root = nullptr;
         delete z;
         return true;
     }
+
     if (z->color == RED) {
-        if (z == a->left) 
-            a->left = nullptr;
-        else 
-            a->right = nullptr;
-        updateAncestorsSize(a);
+        if (z == p->left)
+            p->left = nullptr;
+        else
+            p->right = nullptr;
+        update_ancestors(p);
         delete z;
         return true;
     }
-    if (z == a->left) 
-        a->left = nullptr;
-    else 
-        a->right = nullptr;
-    updateAncestorsSize(a);
+
+    if (z == p->left)
+        p->left = nullptr;
+    else
+        p->right = nullptr;
+
+    update_ancestors(p);
     delete z;
-    fixDeletion(nullptr, a);
+    fix_deletion(nullptr, p);
     return true;
 }
 
-long long kthSmallest(int k) {
+long long kth_smallest(int k) {
     Node* curr = root;
     while (curr) {
-        int leftSz = getSize(curr->left);
-        if (k == leftSz + 1) 
+        int left_sz = get_size(curr->left);
+        if (k == left_sz + 1)
             return curr->key;
-        else if (k <= leftSz) 
+        else if (k <= left_sz)
             curr = curr->left;
         else {
-            k -= (leftSz + 1);
+            k -= (left_sz + 1);
             curr = curr->right;
         }
     }
     return -1;
 }
 
-int rankOf(long long x) {
+int rank_of(long long x) {
     int rank = 0;
     Node* curr = root;
     while (curr) {
         if (x <= curr->key)
             curr = curr->left;
         else {
-            rank += 1 + getSize(curr->left);
+            rank += 1 + get_size(curr->left);
             curr = curr->right;
         }
     }
@@ -324,43 +336,46 @@ int rankOf(long long x) {
 }
 
 int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
     int n;
-    if (!(cin >> n)) 
+    if (!(cin >> n))
         return 0;
 
     for (int i = 0; i < n; ++i) {
         long long x;
         cin >> x;
-        insertKey(x);
+        insert_key(x);
     }
 
     int q;
-    if (!(cin >> q)) 
+    if (!(cin >> q))
         return 0;
 
     while (q--) {
         int type;
         long long x;
         cin >> type >> x;
-        switch(type) {
+        switch (type) {
             case 1:
-                if (insertKey(x))
+                if (insert_key(x))
                     cout << x << " is inserted\n";
                 else
                     cout << x << " is already present. So no need to insert\n";
                 break;
             case 2:
-                if (deleteKey(x))
+                if (delete_key(x))
                     cout << x << " is deleted\n";
                 else
                     cout << x << " is not present. So it can not be deleted\n";
                 break;
             case 3:
-                cout << kthSmallest(static_cast<int>(x)) << "\n";
+                cout << kth_smallest(static_cast<int>(x)) << "\n";
                 break;
             case 4:
-                 cout << rankOf(x) << "\n";
-                 break;
+                cout << rank_of(x) << "\n";
+                break;
         }
     }
     return 0;

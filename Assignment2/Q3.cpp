@@ -1,4 +1,5 @@
 #include <iostream>
+
 using namespace std;
 
 enum Color { RED, BLACK };
@@ -8,8 +9,8 @@ struct Node {
     Color color;
     Node *left, *right, *parent;
 
-    Node(long long k) {
-        key = k;
+    Node(long long val) {
+        key = val;
         color = RED;
         left = nullptr;
         right = nullptr;
@@ -19,18 +20,19 @@ struct Node {
 
 Node* root = nullptr;
 
-bool isRed(Node* u) {
+bool is_red(Node* u) {
     return (u != nullptr && u->color == RED);
 }
 
-void rotateLeft(Node* x) {
+void rotate_left(Node* x) {
     Node* y = x->right;
     x->right = y->left;
-    if (y->left) y->left->parent = x;
+    if (y->left)
+        y->left->parent = x;
     y->parent = x->parent;
-    if (!x->parent) 
+    if (!x->parent)
         root = y;
-    else if (x == x->parent->left) 
+    else if (x == x->parent->left)
         x->parent->left = y;
     else
         x->parent->right = y;
@@ -38,12 +40,13 @@ void rotateLeft(Node* x) {
     x->parent = y;
 }
 
-void rotateRight(Node* x) {
+void rotate_right(Node* x) {
     Node* y = x->left;
     x->left = y->right;
-    if (y->right) y->right->parent = x;
+    if (y->right)
+        y->right->parent = x;
     y->parent = x->parent;
-    if (!x->parent) 
+    if (!x->parent)
         root = y;
     else if (x == x->parent->left)
         x->parent->left = y;
@@ -53,118 +56,121 @@ void rotateRight(Node* x) {
     x->parent = y;
 }
 
-void rotateUp(Node* childNode) {
-    Node* p = childNode->parent;
-    if (!p) return;
-    if (childNode == p->left) 
-        rotateRight(p);
-    else 
-        rotateLeft(p);
+void rotate_up(Node* child) {
+    Node* p = child->parent;
+    if (!p)
+        return;
+    if (child == p->left)
+        rotate_right(p);
+    else
+        rotate_left(p);
 }
 
-void fixInsert(Node* k) {
-    while (k != root && isRed(k->parent)) {
+void fix_insert(Node* k) {
+    while (k != root && is_red(k->parent)) {
         Node* a = k->parent;
         Node* b = a->parent;
         Node* c = (a == b->left) ? b->right : b->left;
-        
-        if (isRed(c)) {
+
+        if (is_red(c)) {
             a->color = BLACK;
             c->color = BLACK;
             b->color = RED;
             k = b;
         } else {
-            bool aIsLeft = (a == b->left);
-            bool kIsLeft = (k == a->left);
-            if (aIsLeft == kIsLeft) {
-                rotateUp(a);
+            bool a_is_left = (a == b->left);
+            bool k_is_left = (k == a->left);
+            if (a_is_left == k_is_left) {
+                rotate_up(a);
                 a->color = BLACK;
                 b->color = RED;
             } else {
-                rotateUp(k);
-                rotateUp(k);
+                rotate_up(k);
+                rotate_up(k);
                 k->color = BLACK;
                 b->color = RED;
             }
             break;
         }
     }
-    if (root) 
+    if (root)
         root->color = BLACK;
 }
 
-void insertKey(long long key) {
-    Node* parent = nullptr;
+void insert_key(long long key) {
+    Node* p = nullptr;
     Node* curr = root;
     while (curr) {
-        parent = curr;
-        if (key == curr->key) 
-            return; // Distinct keys only, ignore duplicates
-        else if (key < curr->key) 
+        p = curr;
+        if (key == curr->key)
+            return;
+        else if (key < curr->key)
             curr = curr->left;
-        else 
+        else
             curr = curr->right;
     }
-    
+
     Node* k = new Node(key);
-    k->parent = parent;
-    
-    if (!parent)
+    k->parent = p;
+
+    if (!p)
         root = k;
-    else if (key < parent->key)
-        parent->left = k;
+    else if (key < p->key)
+        p->left = k;
     else
-        parent->right = k;
-        
-    fixInsert(k);
+        p->right = k;
+
+    fix_insert(k);
 }
 
-void rbEnumerate(Node* x, long long a, long long b, bool& found) {
-    if (!x) return;
-    
-    // If current key is strictly greater than 'a', valid keys might exist in the left subtree.
-    if (x->key > a) {
-        rbEnumerate(x->left, a, b, found);
+// Range enumeration: visits nodes in [low, high] in increasing order
+void rb_enumerate(Node* u, long long low, long long high, bool& printed_any) {
+    if (!u)
+        return;
+
+    if (u->key > low)
+        rb_enumerate(u->left, low, high, printed_any);
+
+    if (u->key >= low && u->key <= high) {
+        if (printed_any)
+            cout << " ";
+        cout << u->key;
+        printed_any = true;
     }
-    
-    // If current key is within the range [a, b], process it.
-    if (x->key >= a && x->key <= b) {
-        if (found) cout << " ";
-        cout << x->key;
-        found = true;
-    }
-    
-    // If current key is strictly less than 'b', valid keys might exist in the right subtree.
-    if (x->key < b) {
-        rbEnumerate(x->right, a, b, found);
-    }
+
+    if (u->key < high)
+        rb_enumerate(u->right, low, high, printed_any);
 }
 
 int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
     int n;
-    if (!(cin >> n)) return 0;
+    if (!(cin >> n))
+        return 0;
 
     for (int i = 0; i < n; ++i) {
         long long x;
         cin >> x;
-        insertKey(x);
+        insert_key(x);
     }
 
     int q;
-    if (!(cin >> q)) return 0;
+    if (!(cin >> q))
+        return 0;
 
     while (q--) {
-        long long a, b;
-        cin >> a >> b;
-        
-        bool found = false;
-        rbEnumerate(root, a, b, found);
-        
-        if (!found) {
+        long long low, high;
+        cin >> low >> high;
+
+        bool printed_any = false;
+        rb_enumerate(root, low, high, printed_any);
+
+        if (!printed_any)
             cout << "EMPTY";
-        }
         cout << "\n";
     }
-    
+
     return 0;
 }
