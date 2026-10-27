@@ -80,7 +80,8 @@ void insertNonFull(BTreeNode* x, int k) {
         }
         x->key[i+1] = k;
         x->count++;
-    } else {
+    }
+    else {
         while(i >= 0 && k < x->key[i])
             --i;
         ++i;
@@ -214,7 +215,8 @@ void deleteFromNode(BTreeNode* x, int k) {
             for(int i = idx+1; i < x->count; ++i)
                 x->key[i-1] = x->key[i];
             x->count--;
-        } else {
+        }
+        else {
             BTreeNode* y = x->children[idx];
             BTreeNode* z = x->children[idx+1];
 
@@ -222,16 +224,19 @@ void deleteFromNode(BTreeNode* x, int k) {
                 int pred = getPredecessor(y);
                 x->key[idx] = pred;
                 deleteFromNode(y, pred);
-            } else if(z->count > MIN) {
+            }
+            else if(z->count > MIN) {
                 int succ = getSuccessor(z);
                 x->key[idx] = succ;
                 deleteFromNode(z, succ);
-            } else {
+            }
+            else {
                 mergeChildren(x, idx);
                 deleteFromNode(y, k);
             }
         }
-    } else {
+    }
+    else {
         BTreeNode* child = x->children[idx];
 
         if(child->count == MIN) {
@@ -242,7 +247,8 @@ void deleteFromNode(BTreeNode* x, int k) {
             else if(idx < x->count) {
                 mergeChildren(x, idx);
                 child = x->children[idx];
-            } else {
+            }
+            else {
                 mergeChildren(x, idx-1);
                 child = x->children[idx-1];
             }
@@ -306,12 +312,8 @@ void levelOrderDisplay(BTreeNode* root) {
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-
     int n;
-    if(!(cin>>n>>MAX>>MIN))
-        return 0;
+    cin>>n>>MAX>>MIN;
 
     BTreeNode* root = nullptr;
     for(int i = 0; i < n; ++i) {
@@ -321,35 +323,38 @@ int main() {
     }
 
     int q;
-    if(!(cin>>q))
-        return 0;
+    cin>>q;
 
     while(q--) {
         int type;
         cin>>type;
-        if(type == 1) {
-            int x;
-            cin>>x;
-            if(search(root, x))
-                cout<<x<<" is present\n";
-            else
-                cout<<x<<" is not present\n";
-        } else if(type == 2) {
-            int x;
-            cin>>x;
-            if(insert(root, x))
-                cout<<x<<" is inserted\n";
-            else
-                cout<<x<<" is already present\n";
-        } else if(type == 3) {
-            int x;
-            cin>>x;
-            if(deleteKey(root, x))
-                cout<<x<<" is deleted\n";
-            else
-                cout<<x<<" is not present. So it can not be deleted\n";
-        } else if(type == 4)
-            levelOrderDisplay(root);
+        int x;
+        switch(type) {
+            case 1:
+                cin>>x;
+                if(search(root, x))
+                    cout<<x<<" is present\n";
+                else
+                    cout<<x<<" is not present\n";
+                break;
+            case 2:
+                cin>>x;
+                if(insert(root, x))
+                    cout<<x<<" is inserted\n";
+                else
+                    cout<<x<<" is already present\n";
+                break;
+            case 3:
+                cin>>x;
+                if(deleteKey(root, x))
+                    cout<<x<<" is deleted\n";
+                else
+                    cout<<x<<" is not present. So it can not be deleted\n";
+                break;
+            case 4:
+                levelOrderDisplay(root);
+                break;
+        }
     }
 
     return 0;

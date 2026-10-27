@@ -77,14 +77,16 @@ void fix_insert(Node* k) {
             c->color = BLACK;
             b->color = RED;
             k = b;
-        } else {
+        }
+        else {
             bool a_is_left = (a == b->left);
             bool k_is_left = (k == a->left);
             if(a_is_left == k_is_left) {
                 rotate_up(a);
                 a->color = BLACK;
                 b->color = RED;
-            } else {
+            }
+            else {
                 rotate_up(k);
                 rotate_up(k);
                 k->color = BLACK;
@@ -143,12 +145,8 @@ void rb_enumerate(Node* u, long long low, long long high, bool& printed_any) {
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-
     int n;
-    if(!(cin>>n))
-        return 0;
+    cin>>n;
 
     for(int i = 0; i < n; ++i) {
         long long x;
@@ -157,8 +155,7 @@ int main() {
     }
 
     int q;
-    if(!(cin>>q))
-        return 0;
+    cin>>q;
 
     while(q--) {
         long long low, high;

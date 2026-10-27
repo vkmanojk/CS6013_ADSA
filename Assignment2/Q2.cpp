@@ -99,14 +99,16 @@ void fix_insert(Node* k) {
             c->color = BLACK;
             b->color = RED;
             k = b;
-        } else {
+        }
+        else {
             bool a_is_left = (a == b->left);
             bool k_is_left = (k == a->left);
             if(a_is_left == k_is_left) {
                 rotate_up(a);
                 a->color = BLACK;
                 b->color = RED;
-            } else {
+            }
+            else {
                 rotate_up(k);
                 rotate_up(k);
                 k->color = BLACK;
@@ -135,7 +137,8 @@ void fix_deletion(Node* u, Node* a) {
                 a->color = BLACK;
                 b->color = RED;
                 return;
-            } else {
+            }
+            else {
                 if(is_red(inner_c)) {
                     Node* c = inner_c;
                     rotate_up(c);
@@ -143,7 +146,8 @@ void fix_deletion(Node* u, Node* a) {
                     c->color = RED;
                     a->color = BLACK;
                     b->color = BLACK;
-                } else {
+                }
+                else {
                     Node* c = outer_c;
                     rotate_up(b);
                     b->color = RED;
@@ -152,7 +156,8 @@ void fix_deletion(Node* u, Node* a) {
                 }
                 return;
             }
-        } else {
+        }
+        else {
             if(!is_red(b)) {
                 Node* inner_c = u_is_right ? b->right : b->left;
                 Node* outer_c = u_is_right ? b->left : b->right;
@@ -160,7 +165,8 @@ void fix_deletion(Node* u, Node* a) {
                     b->color = RED;
                     u = a;
                     a = u->parent;
-                } else {
+                }
+                else {
                     if(is_red(inner_c)) {
                         Node* c = inner_c;
                         rotate_up(c);
@@ -168,7 +174,8 @@ void fix_deletion(Node* u, Node* a) {
                         c->color = BLACK;
                         b->color = BLACK;
                         a->color = BLACK;
-                    } else {
+                    }
+                    else {
                         Node* c = outer_c;
                         rotate_up(b);
                         b->color = BLACK;
@@ -177,7 +184,8 @@ void fix_deletion(Node* u, Node* a) {
                     }
                     return;
                 }
-            } else {
+            }
+            else {
                 Node* c = u_is_right ? b->right : b->left;
                 Node* outer_d = u_is_right ? c->left : c->right;
                 Node* inner_d = u_is_right ? c->right : c->left;
@@ -187,7 +195,8 @@ void fix_deletion(Node* u, Node* a) {
                     a->color = BLACK;
                     c->color = RED;
                     return;
-                } else {
+                }
+                else {
                     if(!is_red(outer_d)) {
                         rotate_up(inner_d);
                         inner_d->color = BLACK;
@@ -336,12 +345,8 @@ int rank_of(long long x) {
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-
     int n;
-    if(!(cin>>n))
-        return 0;
+    cin>>n;
 
     for(int i = 0; i < n; ++i) {
         long long x;
@@ -350,8 +355,7 @@ int main() {
     }
 
     int q;
-    if(!(cin>>q))
-        return 0;
+    cin>>q;
 
     while(q--) {
         int type;

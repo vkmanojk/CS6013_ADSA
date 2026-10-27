@@ -44,12 +44,8 @@ struct DisjointSet {
 };
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-
     int n, m, k;
-    if(!(cin>>n>>m>>k))
-        return 0;
+    cin>>n>>m>>k;
 
     vector<Edge> edges(m+1);
     for(int i = 1; i <= m; ++i) {
@@ -73,7 +69,8 @@ int main() {
             if(dsu.union_sets(edges[i].u, edges[i].v)) {
                 total_cost += edges[i].weight;
                 edges_used++;
-            } else {
+            }
+            else {
                 cout<<"-1\n";
                 return 0;
             }

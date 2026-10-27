@@ -46,12 +46,8 @@ long long prim_mst(int start_node, const vector<vector<Edge>>& adj, int n) {
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-
     int n, m;
-    if(!(cin>>n>>m))
-        return 0;
+    cin>>n>>m;
 
     vector<vector<Edge>> adj(n+1);
 

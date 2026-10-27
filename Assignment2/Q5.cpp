@@ -38,12 +38,8 @@ void dijkstra(int start, const vector<vector<Edge>>& adj, vector<long long>& dis
 }
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-
     int n, m, s, t;
-    if(!(cin>>n>>m>>s>>t))
-        return 0;
+    cin>>n>>m>>s>>t;
 
     vector<vector<Edge>> adj(n+1);
     int u_neg = -1, v_neg = -1;
@@ -57,7 +53,8 @@ int main() {
             u_neg = u;
             v_neg = v;
             w_neg = c;
-        } else
+        }
+        else
             adj[u].push_back({v, c});
     }
 

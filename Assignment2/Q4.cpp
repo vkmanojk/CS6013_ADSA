@@ -46,7 +46,8 @@ struct TwoSatSolver {
                     visited[v] = true;
                     st.push_back({v, 0});
                 }
-            } else {
+            }
+            else {
                 order.push_back(u);
                 st.pop_back();
             }
@@ -92,29 +93,26 @@ struct TwoSatSolver {
 };
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-
     int t;
-    if(cin>>t) {
-        while(t--) {
-            int n, m;
-            cin>>n>>m;
-            TwoSatSolver solver(n);
+    cin>>t;
+    while(t--) {
+        int n, m;
+        cin>>n>>m;
+        TwoSatSolver solver(n);
 
-            for(int i = 0; i < m; ++i) {
-                int u, v;
-                cin>>u>>v;
-                solver.add_clause(abs(u)-1, (u > 0), abs(v)-1, (v > 0));
-            }
-
-            if(solver.solve()) {
-                for(int i = 0; i < n; ++i)
-                    cout<<solver.assignment[i]<<(i == n-1 ? "" : " ");
-                cout<<"\n";
-            } else
-                cout<<"Unsatisfiable\n";
+        for(int i = 0; i < m; ++i) {
+            int u, v;
+            cin>>u>>v;
+            solver.add_clause(abs(u)-1, (u > 0), abs(v)-1, (v > 0));
         }
+
+        if(solver.solve()) {
+            for(int i = 0; i < n; ++i)
+                cout<<solver.assignment[i]<<(i == n-1 ? "" : " ");
+            cout<<"\n";
+        }
+        else
+            cout<<"Unsatisfiable\n";
     }
     return 0;
 }
