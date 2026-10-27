@@ -12,6 +12,7 @@ struct Edge {
     bool is_mandatory;
 };
 
+// Disjoint-set union (DSU) structure with path compression and union by rank
 struct DisjointSet {
     vector<int> parent;
     vector<int> rank;
@@ -64,6 +65,7 @@ int main() {
     long long total_cost = 0;
     int edges_used = 0;
 
+    // Union mandatory roads first and check for cycles
     for(int i = 1; i <= m; ++i) {
         if(edges[i].is_mandatory) {
             if(dsu.union_sets(edges[i].u, edges[i].v)) {
@@ -82,9 +84,11 @@ int main() {
         if(!edges[i].is_mandatory)
             remaining_edges.push_back(edges[i]);
 
+    // Sort remaining optional roads by weight for Kruskal's algorithm
     sort(remaining_edges.begin(), remaining_edges.end(),
          [](const Edge &a, const Edge &b) { return a.weight < b.weight; });
 
+    // Greedily pick edges to form spanning tree
     for(const auto &edge : remaining_edges) {
         if(edges_used == n-1)
             break;

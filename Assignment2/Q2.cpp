@@ -42,6 +42,7 @@ bool is_red(Node* u) {
     return (u != nullptr && u->color == RED);
 }
 
+// Left rotation preserving subtree sizes
 void rotate_left(Node* x) {
     Node* y = x->right;
     x->right = y->left;
@@ -60,6 +61,7 @@ void rotate_left(Node* x) {
     update_size(y);
 }
 
+// Right rotation preserving subtree sizes
 void rotate_right(Node* x) {
     Node* y = x->left;
     x->left = y->right;
@@ -88,6 +90,7 @@ void rotate_up(Node* child) {
         rotate_left(p);
 }
 
+// Fix Red-Black properties after insertion
 void fix_insert(Node* k) {
     while(k != root && is_red(k->parent)) {
         Node* a = k->parent;
@@ -121,6 +124,7 @@ void fix_insert(Node* k) {
         root->color = BLACK;
 }
 
+// Fix Red-Black properties after deletion
 void fix_deletion(Node* u, Node* a) {
     while(u != root && a != nullptr) {
         bool u_is_right = (u == a->right);
@@ -230,6 +234,7 @@ Node* search_node(long long key) {
     return nullptr;
 }
 
+// Insert key into Red-Black tree
 bool insert_key(long long key) {
     Node* p = nullptr;
     Node* curr = root;
@@ -257,6 +262,7 @@ bool insert_key(long long key) {
     return true;
 }
 
+// Delete key from Red-Black tree
 bool delete_key(long long key) {
     Node* z = search_node(key);
     if(!z)
@@ -314,6 +320,7 @@ bool delete_key(long long key) {
     return true;
 }
 
+// Find k-th smallest element using order statistics
 long long kth_smallest(int k) {
     Node* curr = root;
     while(curr) {
@@ -330,6 +337,7 @@ long long kth_smallest(int k) {
     return -1;
 }
 
+// Find rank of x (number of keys strictly smaller than x)
 int rank_of(long long x) {
     int rank = 0;
     Node* curr = root;

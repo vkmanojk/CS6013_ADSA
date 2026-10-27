@@ -69,6 +69,7 @@ struct TwoSatSolver {
         }
     }
 
+    // Solve 2-SAT using Kosaraju's SCC algorithm
     bool solve() {
         visited.assign(2*n, false);
         for(int i = 0; i < 2*n; ++i)

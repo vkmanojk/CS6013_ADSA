@@ -24,6 +24,7 @@ bool is_red(Node* u) {
     return (u != nullptr && u->color == RED);
 }
 
+// Left rotation
 void rotate_left(Node* x) {
     Node* y = x->right;
     x->right = y->left;
@@ -40,6 +41,7 @@ void rotate_left(Node* x) {
     x->parent = y;
 }
 
+// Right rotation
 void rotate_right(Node* x) {
     Node* y = x->left;
     x->left = y->right;
@@ -66,6 +68,7 @@ void rotate_up(Node* child) {
         rotate_left(p);
 }
 
+// Fix Red-Black properties after insertion
 void fix_insert(Node* k) {
     while(k != root && is_red(k->parent)) {
         Node* a = k->parent;
@@ -99,6 +102,7 @@ void fix_insert(Node* k) {
         root->color = BLACK;
 }
 
+// Insert distinct key into Red-Black tree
 void insert_key(long long key) {
     Node* p = nullptr;
     Node* curr = root;

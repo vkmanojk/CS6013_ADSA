@@ -11,6 +11,7 @@ struct Edge {
     long long cost;
 };
 
+// Dijkstra algorithm for shortest paths with non-negative edge weights
 void dijkstra(int start, const vector<vector<Edge>>& adj, vector<long long>& dist) {
     int n = adj.size();
     dist.assign(n, INF);
@@ -58,15 +59,18 @@ int main() {
             adj[u].push_back({v, c});
     }
 
+    // Compute shortest distances from source S
     vector<long long> dist_from_s;
     dijkstra(s, adj, dist_from_s);
 
+    // Compute shortest distances from the destination of the negative road
     vector<long long> dist_from_v;
     if(v_neg != -1)
         dijkstra(v_neg, adj, dist_from_v);
 
     long long min_cost = dist_from_s[t];
 
+    // Check if using the negative edge shortcut achieves a smaller total cost
     if(u_neg != -1 && dist_from_s[u_neg] != INF && dist_from_v[t] != INF) {
         long long cost_via_shortcut = dist_from_s[u_neg]+w_neg+dist_from_v[t];
         if(cost_via_shortcut < min_cost)

@@ -51,6 +51,7 @@ int main() {
 
     vector<vector<Edge>> adj(n+1);
 
+    // Connect super-source 0 to each city with its power station cost
     for(int i = 1; i <= n; ++i) {
         long long station_cost;
         cin>>station_cost;
@@ -58,6 +59,7 @@ int main() {
         adj[i].push_back({0, station_cost});
     }
 
+    // Add available bidirectional power lines
     for(int i = 0; i < m; ++i) {
         int u, v;
         long long c;
